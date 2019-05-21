@@ -1,8 +1,19 @@
 package main;
 
+import gui.SimulationAvecUI;
+import modele.Environnement;
+import sim.display.Console;
+
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Hello World!");
-    }
+		runUI();
+	}
+
+	public static void runUI() {
+		Environnement model = new Environnement(System.currentTimeMillis());
+		SimulationAvecUI gui = new SimulationAvecUI(model);
+		Console console = new Console(gui);
+		console.setVisible(true);
+	}
 }
