@@ -29,8 +29,11 @@ public class Humain implements Steppable {
      * false si l'Humain n'était pas dans la grille ou s'il n'avait pas le droit de se déplacer aux coordonnées indiquées
      */
     private boolean essayerDeSeDeplacer(int x, int y) {
-        if (peutSeDeplacer(x, y))
-            return environnement.grille.setObjectLocation(this, x, y);
+        if (peutSeDeplacer(x, y) && (environnement.grille.setObjectLocation(this, x, y))) {
+            this.x = x;
+            this.y = y;
+            return true;
+        }
         return false;
     }
 
