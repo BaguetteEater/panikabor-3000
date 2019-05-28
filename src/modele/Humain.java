@@ -3,7 +3,7 @@ package modele;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 
-public class Humain implements Steppable {
+public class Humain extends Superposable implements Steppable {
 
     private Environnement environnement;
     private int x, y;
@@ -12,6 +12,7 @@ public class Humain implements Steppable {
         this.environnement = environnement;
         this.x = x;
         this.y = y;
+        setTaille(1);
     }
 
     private boolean peutSeDeplacer(int x, int y) {
