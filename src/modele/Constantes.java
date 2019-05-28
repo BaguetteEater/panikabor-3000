@@ -10,3 +10,4 @@ public class Constantes {
      */
     public final static int CAPACITE_MAX_CELLULE = 3;
 }
+
