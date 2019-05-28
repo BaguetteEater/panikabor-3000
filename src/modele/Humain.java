@@ -1,18 +1,25 @@
 package modele;
 
+import javafx.util.Pair;
+import modele.pathfinding.AStar;
 import sim.engine.SimState;
 import sim.engine.Steppable;
+
+import java.util.List;
 
 public class Humain extends Superposable implements Steppable {
 
     private Environnement environnement;
     private int x, y;
+    private AStar cerveau;
 
     public Humain(Environnement environnement, int x, int y) {
         this.environnement = environnement;
         this.x = x;
         this.y = y;
         setTaille(1);
+
+        this.cerveau = new AStar(environnement.grille.getHeight(), environnement.grille.getWidth(), this, environnement.getSortie().getKey(), environnement.getSortie().getValue());
     }
 
     private boolean peutSeDeplacer(int x, int y) {
@@ -39,7 +46,21 @@ public class Humain extends Superposable implements Steppable {
     }
 
     private void essayerDeSortir() {
-        // TODO: avancer d'une case vers la sortie (utilisation d'un attribut Pile ?)
+        List<Pair<Integer, Integer>> murs = environnement.getMurs();
+
+        int[][] mursArray = new int[murs.size()][2];
+
+        for(int i = 0; i < mursArray.length; i++){
+            for(int j = 0; j < mursArray[0].length; j++){
+                if(j == 0)
+                    mursArray[i][j] = murs.get(i).getKey();
+                else
+                    mursArray[i][j] = murs.get(i).getValue();
+            }
+        }
+
+        cerveau.setBlocks(mursArray);
+        cerveau.findPath();
     }
 
     @Override
