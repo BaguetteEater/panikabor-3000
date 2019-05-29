@@ -2,6 +2,7 @@ package modele;
 
 import javafx.util.Pair;
 import modele.pathfinding.AStar;
+import modele.pathfinding.Node;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 
@@ -47,7 +48,7 @@ public class Humain extends Superposable implements Steppable {
 
     private void essayerDeSortir() {
         List<Pair<Integer, Integer>> murs = environnement.getMurs();
-
+        List<Node> path;
         int[][] mursArray = new int[murs.size()][2];
 
         for(int i = 0; i < mursArray.length; i++){
@@ -59,8 +60,10 @@ public class Humain extends Superposable implements Steppable {
             }
         }
 
+        path = cerveau.findPath();
         cerveau.setBlocks(mursArray);
-        cerveau.findPath();
+        //Le path retourne en premiere position la position actuelle de l'humain, on veut la case d'après d'ou le get(1)
+        essayerDeSeDeplacer(path.get(1).getRow(), path.get(1).getCol());
     }
 
     @Override
