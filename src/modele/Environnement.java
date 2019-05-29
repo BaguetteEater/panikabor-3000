@@ -51,22 +51,24 @@ public class Environnement extends SimState {
 	private void ajouterAgentSortie() {
 		// TODO : modifier les valeurs de x et y en fonction du placement initial des
 		// sorties
-		Sortie sortie = new Sortie(1, 0, 0);
-		grille.setObjectLocation(sortie, 0, 0);
+		Sortie sortie = new Sortie(1, 10, 0);
+		grille.setObjectLocation(sortie, 10, 0);
 	}
-	
+
 	private void ajouterAgentMur() {
 		// TODO : modifier les valeurs de x et y en fonction du placement initial des
 		// murs
-		for (int i = 1; i < grille.getHeight(); i++) {
-			grille.setObjectLocation(new Mur(i, 0), i, 0);
-			grille.setObjectLocation(new Mur(i, grille.getWidth()-1), i, grille.getWidth()-1);
+		for (int i = 0; i < grille.getHeight(); i++) {
+			if (i != 10) {
+				grille.setObjectLocation(new Mur(i, 0), i, 0);
+			}
+			grille.setObjectLocation(new Mur(i, grille.getWidth() - 1), i, grille.getWidth() - 1);
 		}
-		for (int j = 1; j < grille.getWidth(); j++) {
+		for (int j = 1; j < grille.getWidth()-1; j++) {
 			grille.setObjectLocation(new Mur(0, j), 0, j);
-			grille.setObjectLocation(new Mur(grille.getHeight()-1, j), grille.getHeight()-1, j);
+			grille.setObjectLocation(new Mur(grille.getHeight() - 1, j), grille.getHeight() - 1, j);
 		}
-		
+
 	}
 
 	public Pair<Integer, Integer> getSortie() {
