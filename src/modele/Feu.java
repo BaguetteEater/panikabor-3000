@@ -30,7 +30,10 @@ public class Feu implements Steppable {
     
     
     private boolean propageable(Environnement environnement, int x, int y) {
-    	for(Object object : environnement.grille.getObjectsAtLocation(x, y)) {
+    	if (environnement.grille.getObjectsAtLocation(x, y) == null) {
+			return true;
+		}
+    	for(Object object : environnement.grille.getObjectsAtLocation(x, y).objs) {
     		if(object instanceof Feu || object instanceof Mur) return false;
     	}
     	return true;

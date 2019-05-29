@@ -19,7 +19,6 @@ public class Humain extends Superposable implements Steppable {
         this.x = x;
         this.y = y;
         setTaille(1);
-
         this.cerveau = new AStar(environnement.grille.getHeight(), environnement.grille.getWidth(), this, environnement.getSortie().getKey(), environnement.getSortie().getValue());
     }
 

@@ -2,7 +2,11 @@ package modele;
 
 public class Mur extends Inerte {
 
-    public Mur() {
+	private int x, y;
+	
+    public Mur(int x, int y) {
+    	this.x = x;
+    	this.y = y;
         setInfranchissable();
     }
 }

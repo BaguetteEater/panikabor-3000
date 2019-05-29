@@ -3,46 +3,110 @@ package modele;
 import javafx.util.Pair;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
+import sim.util.Int2D;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class Environnement extends SimState {
-	
+
 	public SparseGrid2D grille = new SparseGrid2D(gui.Constantes.TAILLE_GRILLE, gui.Constantes.TAILLE_GRILLE);
 
-    public Environnement(long seed) {
-        super(seed);
-    }
+	public Environnement(long seed) {
+		super(seed);
+	}
 
-    @Override
-    public void start() {
-        super.start();
-    }
+	@Override
+	public void start() {
+		System.out.println("Simulation intialisee");
+		super.start();
+		grille.clear();
+		ajouterAgentMur();
+		ajouterAgentSortie();
+		ajouterAgentHumain();
+		ajouterAgentFeu();
+	}
 
-    public Pair<Integer, Integer> getSortie(){
+	private void ajouterAgentHumain() {
+		// TODO : modifier les valeurs de x et y en fonction du placement initial des
+		// humains
+		for (int i = 0; i < Constantes.NOMBRE_HUMAINS; i++) {
+			Int2D location = recupererEmplacementVide();
+			Humain humain = new Humain(this, location.x, location.y);
+			grille.setObjectLocation(humain, location.x, location.y);
+			schedule.scheduleRepeating(humain);
+		}
+	}
 
-        for(int i = 0; i < grille.getHeight(); i++){
-            for(int j = 0; j < grille.getWidth(); j++){
-                for(Object o : grille.getObjectsAtLocation(i, j).objs){
-                    if(o instanceof Sortie) return new Pair<>(i, j);
-                }
-            }
-        }
-        return new Pair<>(null, null);
-    }
+	private void ajouterAgentFeu() {
+		// TODO : modifier les valeurs de x et y en fonction du placement initial du feu
+		for (int i = 0; i < Constantes.NOMBRE_FOYERS; i++) {
+			Int2D location = recupererEmplacementVide();
+			Feu feu = new Feu(this, location.x, location.y);
+			grille.setObjectLocation(feu, location.x, location.y);
+			schedule.scheduleRepeating(feu);
+		}
+	}
 
-    public List<Pair<Integer, Integer>> getMurs(){
+	private void ajouterAgentSortie() {
+		// TODO : modifier les valeurs de x et y en fonction du placement initial des
+		// sorties
+		Sortie sortie = new Sortie(1, 0, 0);
+		grille.setObjectLocation(sortie, 0, 0);
+	}
+	
+	private void ajouterAgentMur() {
+		// TODO : modifier les valeurs de x et y en fonction du placement initial des
+		// murs
+		for (int i = 1; i < grille.getHeight(); i++) {
+			grille.setObjectLocation(new Mur(i, 0), i, 0);
+			grille.setObjectLocation(new Mur(i, grille.getWidth()-1), i, grille.getWidth()-1);
+		}
+		for (int j = 1; j < grille.getWidth(); j++) {
+			grille.setObjectLocation(new Mur(0, j), 0, j);
+			grille.setObjectLocation(new Mur(grille.getHeight()-1, j), grille.getHeight()-1, j);
+		}
+		
+	}
 
-        List<Pair<Integer, Integer>> listMurs = new ArrayList<>();
+	public Pair<Integer, Integer> getSortie() {
 
-        for(int i = 0; i < grille.getHeight(); i++){
-            for(int j = 0; j < grille.getWidth(); j++){
-                for(Object o : grille.getObjectsAtLocation(i, j).objs){
-                    if(o instanceof Mur) listMurs.add(new Pair<>(i, j));
-                }
-            }
-        }
-        return listMurs;
-    }
+		for (int i = 0; i < grille.getHeight(); i++) {
+			for (int j = 0; j < grille.getWidth(); j++) {
+				if (grille.getObjectsAtLocation(i, j) != null) {
+					for (Object o : grille.getObjectsAtLocation(i, j).objs) {
+						if (o instanceof Sortie)
+							return new Pair<>(i, j);
+					}
+				}
+			}
+		}
+		return new Pair<>(null, null);
+	}
+
+	public List<Pair<Integer, Integer>> getMurs() {
+
+		List<Pair<Integer, Integer>> listMurs = new ArrayList<>();
+
+		for (int i = 0; i < grille.getHeight(); i++) {
+			for (int j = 0; j < grille.getWidth(); j++) {
+				if (grille.getObjectsAtLocation(i, j) != null) {
+					for (Object o : grille.getObjectsAtLocation(i, j).objs) {
+						if (o instanceof Mur)
+							listMurs.add(new Pair<>(i, j));
+					}
+				}
+			}
+		}
+		return listMurs;
+	}
+
+	private Int2D recupererEmplacementVide() {
+		Int2D location = new Int2D(random.nextInt(grille.getWidth()), random.nextInt(grille.getHeight()));
+		Object ag;
+		while ((ag = grille.getObjectsAtLocation(location.x, location.y)) != null) {
+			location = new Int2D(random.nextInt(grille.getWidth()), random.nextInt(grille.getHeight()));
+		}
+		return location;
+	}
 }
