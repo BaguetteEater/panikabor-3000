@@ -24,7 +24,7 @@ public class Humain extends Superposable implements Steppable {
     }
 
     private boolean peutSeDeplacer(int x, int y) {
-        return environnement.grille.getObjectsAtLocation(x, y).isEmpty() // vérifie que la cellule visée est vide (pas de superposition)
+        return Superposable.isCellulePleine(environnement, x, y) // vérifie que la cellule visée est vide (pas de superposition)
                 && Math.abs(this.x - x) <= 1 // vérifie qu'on se déplace d'une seule case
                 && Math.abs(this.y - y) <= 1
                 && (this.x == x || this.y == y); // vérifie qu'on ne se déplace pas en diagonale
