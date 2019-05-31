@@ -3,15 +3,14 @@ package modele;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 
-public class Feu implements Steppable {
+public class Feu extends Superposable implements Steppable {
 	
-	private Environnement environnement;
 	private int x, y;
 	
-	public Feu(Environnement environnement, int x, int y) {
+	public Feu(int x, int y) {
 		this.x = x;
 		this.y = y;
-		this.environnement = environnement;
+		setTaille(0);
 	}
 	
     @Override
@@ -42,13 +41,13 @@ public class Feu implements Steppable {
     private void propager(Environnement environnement) {
     	    	
     	if(propageable(environnement, x+1, y))
-    		environnement.grille.setObjectLocation(new Feu(environnement, x+1, y), x+1, y);
+    		environnement.grille.setObjectLocation(new Feu(x+1, y), x+1, y);
     	if(propageable(environnement, x-1, y))
-    		environnement.grille.setObjectLocation(new Feu(environnement, x-1, y), x-1, y);
+    		environnement.grille.setObjectLocation(new Feu(x-1, y), x-1, y);
     	if(propageable(environnement, x, y+1))
-    		environnement.grille.setObjectLocation(new Feu(environnement, x, y+1), x, y+1);
+    		environnement.grille.setObjectLocation(new Feu(x, y+1), x, y+1);
     	if(propageable(environnement, x, y-1))
-    		environnement.grille.setObjectLocation(new Feu(environnement, x, y-1), x, y-1);
+    		environnement.grille.setObjectLocation(new Feu(x, y-1), x, y-1);
     	
     }
     
