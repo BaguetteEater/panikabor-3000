@@ -42,7 +42,7 @@ public class Environnement extends SimState {
 		// TODO : modifier les valeurs de x et y en fonction du placement initial du feu
 		for (int i = 0; i < Constantes.NOMBRE_FOYERS; i++) {
 			Int2D location = recupererEmplacementVide();
-			Feu feu = new Feu(this, location.x, location.y);
+			Feu feu = new Feu(location.x, location.y);
 			grille.setObjectLocation(feu, location.x, location.y);
 			schedule.scheduleRepeating(feu);
 		}
