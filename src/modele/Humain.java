@@ -11,14 +11,11 @@ import java.util.List;
 public class Humain extends Superposable implements Steppable {
 
     private int x, y;
-    private AStar cerveau;
 
     public Humain(Environnement environnement, int x, int y) {
         this.x = x;
         this.y = y;
         setTaille(1);
-
-        this.cerveau = new AStar(environnement.grille.getHeight(), environnement.grille.getWidth(), this, environnement.getSortie().getKey(), environnement.getSortie().getValue());
     }
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
@@ -44,7 +41,19 @@ public class Humain extends Superposable implements Steppable {
         return false;
     }
 
-    private void essayerDeSortir(Environnement environnement) {
+    /**
+     * Cette fonction trouve la case la plus proche entre l'humain et la sortie et essayer de s'y deplacer
+     * @param environnement L'ensemble de l'environnement dans lequel se deplace l'humain, contenant l'emplacement des murs et de la sortie
+     * @return true si il a reussi a se deplacer, false sinon
+     */
+    private boolean essayerDeSortir(Environnement environnement) {
+        AStar cerveau = new AStar(
+                environnement.grille.getHeight(),
+                environnement.grille.getWidth(),
+                this,
+                environnement.getSortie().getKey(),
+                environnement.getSortie().getValue());
+
         List<Pair<Integer, Integer>> murs = environnement.getMurs();
         List<Node> path;
         int[][] mursArray = new int[murs.size()][2];
@@ -58,16 +67,33 @@ public class Humain extends Superposable implements Steppable {
             }
         }
 
-        path = cerveau.findPath();
         cerveau.setBlocks(mursArray);
+        path = cerveau.findPath();
         //Le path retourne en premiere position la position actuelle de l'humain, on veut la case d'après d'ou le get(1)
-        essayerDeSeDeplacer(environnement, path.get(1).getRow(), path.get(1).getCol());
+        try {
+            essayerDeSeDeplacer(environnement, path.get(1).getRow(), path.get(1).getCol());
+        } catch(IndexOutOfBoundsException e){
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param environnement L'environnement dans lequel se deplace l'humain, contenant la sortie.
+     * @return Vrai si l'homme est sur la case de la sortie, false sinon
+     */
+    public boolean estSorti(Environnement environnement){
+        return environnement.getSortie().getKey() == this.x && environnement.getSortie().getValue() == this.getY();
     }
 
     @Override
     public void step(SimState simState) {
         Environnement environnement = (Environnement) simState;
-        essayerDeSortir(environnement);
+        if(!estSorti(environnement))
+            essayerDeSortir(environnement);
+        else
+            System.out.println("L'humain est sorti");
     }
 
     public int getX() {

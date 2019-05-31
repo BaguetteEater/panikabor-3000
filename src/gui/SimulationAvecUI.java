@@ -6,6 +6,8 @@ import javax.swing.JFrame;
 import modele.Environnement;
 import modele.Feu;
 import modele.Humain;
+import modele.Mur;
+import modele.Sortie;
 import sim.display.Controller;
 import sim.display.Display2D;
 import sim.display.GUIState;
@@ -42,8 +44,10 @@ public class SimulationAvecUI extends GUIState {
 		yardPortrayal.setField(environnement.grille);
 		yardPortrayal.setPortrayalForClass(Humain.class, getAgentHumainRepresentation());
 		yardPortrayal.setPortrayalForClass(Feu.class, getAgentFeuRepresentation());
+		yardPortrayal.setPortrayalForClass(Mur.class, getAgentMurRepresentation());
+		yardPortrayal.setPortrayalForClass(Sortie.class, getAgentSortieRepresentation());
 		display.reset();
-		display.setBackdrop(Color.orange);
+		display.setBackdrop(Color.white);
 		display.repaint();
 	}
 	
@@ -60,6 +64,22 @@ public class SimulationAvecUI extends GUIState {
 		r.paint = Color.RED;
 		r.filled = true;
 		r.scale = 0.4;
+		return r;
+	}
+	
+	private OvalPortrayal2D getAgentSortieRepresentation() {
+		OvalPortrayal2D r = new OvalPortrayal2D();
+		r.paint = Color.BLUE;
+		r.filled = true;
+		r.scale = 1;
+		return r;
+	}
+	
+	private OvalPortrayal2D getAgentMurRepresentation() {
+		OvalPortrayal2D r = new OvalPortrayal2D();
+		r.paint = Color.BLACK;
+		r.filled = true;
+		r.scale = 0.8;
 		return r;
 	}
 	

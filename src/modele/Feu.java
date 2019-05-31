@@ -20,30 +20,40 @@ public class Feu extends Superposable implements Steppable {
     	
     	// Probabilité de propagation
     	// Le feu se propage si la probabilité vaut 0
-    	
-    	int probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
-    	if (probabilite == 0) {
-    		propager(environnement);
-    	}
+    	propager(environnement);
     }
     
     
     private boolean propageable(Environnement environnement, int x, int y) {
-    	for(Object object : environnement.grille.getObjectsAtLocation(x, y)) {
+    	if (environnement.grille.getObjectsAtLocation(x, y) == null) {
+			return true;
+		}
+    	for(Object object : environnement.grille.getObjectsAtLocation(x, y).objs) {
     		if(object instanceof Feu || object instanceof Mur) return false;
     	}
     	return true;
     }
     
     private void propager(Environnement environnement) {
-    	    	
-    	if(propageable(environnement, x+1, y))
+
+		int probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
+
+    	if(propageable(environnement, x+1, y) && probabilite == 0)
     		environnement.grille.setObjectLocation(new Feu(x+1, y), x+1, y);
-    	if(propageable(environnement, x-1, y))
+
+		probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
+
+    	if(propageable(environnement, x-1, y) && probabilite == 0)
     		environnement.grille.setObjectLocation(new Feu(x-1, y), x-1, y);
-    	if(propageable(environnement, x, y+1))
+
+		probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
+
+    	if(propageable(environnement, x, y+1) && probabilite == 0)
     		environnement.grille.setObjectLocation(new Feu(x, y+1), x, y+1);
-    	if(propageable(environnement, x, y-1))
+
+		probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
+
+    	if(propageable(environnement, x, y-1) && probabilite == 0)
     		environnement.grille.setObjectLocation(new Feu(x, y-1), x, y-1);
     	
     }
