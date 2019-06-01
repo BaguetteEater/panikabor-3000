@@ -71,6 +71,12 @@ public class Environnement extends SimState {
 
 	}
 
+	public void ajoutFeu(int x, int y){
+		Feu newFeu = new Feu(x, y);
+		grille.setObjectLocation(newFeu, x, y);
+		schedule.scheduleRepeating(newFeu);
+	}
+
 	public Pair<Integer, Integer> getSortie() {
 
 		for (int i = 0; i < grille.getHeight(); i++) {
