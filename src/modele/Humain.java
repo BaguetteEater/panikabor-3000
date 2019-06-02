@@ -5,17 +5,30 @@ import modele.pathfinding.AStar;
 import modele.pathfinding.Node;
 import sim.engine.SimState;
 import sim.engine.Steppable;
+import sim.field.grid.SparseGrid2D;
 
 import java.util.List;
 
 public class Humain extends Superposable implements Steppable {
 
     private int x, y;
+    private SparseGrid2D vision;
 
     public Humain(Environnement environnement, int x, int y) {
         this.x = x;
         this.y = y;
         setTaille(1);
+        vision = new SparseGrid2D(gui.Constantes.TAILLE_GRILLE, gui.Constantes.TAILLE_GRILLE);
+    }
+
+    @Override
+    public void step(SimState simState) {
+        Environnement environnement = (Environnement) simState;
+        System.out.println(reduceGridBetweenTwoPoints(environnement, 0, 0, 5, 5));
+        if(!estSorti(environnement))
+            essayerDeSortir(environnement);
+        else
+            System.out.println("L'humain est sorti");
     }
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
@@ -87,13 +100,70 @@ public class Humain extends Superposable implements Steppable {
         return environnement.getSortie().getKey() == this.x && environnement.getSortie().getValue() == this.getY();
     }
 
-    @Override
-    public void step(SimState simState) {
-        Environnement environnement = (Environnement) simState;
-        if(!estSorti(environnement))
-            essayerDeSortir(environnement);
-        else
-            System.out.println("L'humain est sorti");
+
+    /**
+     * Cette methode permet d'obtenir le champ de vision d'un humain via un methode simple
+     * On parcourt chaque case et on regarde si il existe une case entre celle ci et l'agent humain.
+     *
+     * Pour verifier cela, on considère le triangle ABC avec A, l'humain, B la premiere case et C la deuxième case.
+     * Si l'aire d'ABC est egale à 0, alors les trois points sont sur la même ligne et l'agent ne peut voir la plus eloignée des 2
+     *
+     * @param e
+     */
+    private void percevoir(Environnement e){
+
+        int aireTriangle = 0;
+        for(int Bx = 0 ; Bx < e.grille.getWidth(); Bx++){
+            for(int  By = 0 ; By < e.grille.getHeight(); By++) {
+
+                for(int Cx = 0; Cx < e.grille.getWidth(); Cx++){
+                    for(int Cy = 0; Cy < e.grille.getHeight(); Cy++){
+
+                        aireTriangle = this.x * (By - Cy) + Bx * (Cy - this.y) + Cx * (this.y - By);
+
+                        if(aireTriangle == 0){
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Cette fonction copie une partie la grille de l'environnement entre un point A et un point B tel que :
+     * Pour A(x, y) et B(l, c) la grille obtenue sera de taille (l-x) sur (c-y) avec l > x et c > y
+     * Ce traitement a pour but de reduire le nombre de cases parcouru lors du traitement de la perception et aussi d'obtenir les points appartenant au segment [AB] et non pas la droite (AB)
+     * @param Ax Les coordonnées x du point A
+     * @param Ay Les coordonnées y du point A
+     * @param Bx Les coordonnées x du point B
+     * @param By Les coordonnées y du point B
+     * @param e L'environnement complet
+     * @return Une copie plus petite de la grille originale faisant (l-x) sur (c-y) avec l > x et c > y ou bien (x-l) sur (y-c) avec x > l et y > c
+     */
+    private SparseGrid2D reduceGridBetweenTwoPoints(Environnement e, int Ax, int Ay, int Bx, int By){
+
+        // iDepart  et jDepart sont les points de depart de la boucles, ils doivent etre les coordonnees les plus petites parmis les deux points
+        int iDepart = (Ax < Bx) ? Ax : Bx;
+        int jDepart = (Ay < By) ? Ay : By;
+
+        // iLimite et jLimite sont les limite de fin de boucle, ils doivent etre les plus grandes coordonnees parmis les deux points
+        int iLimite = (Ax < Bx) ? Bx : Ax;
+        int jLimite = (Ay < By) ? By : Ay;
+
+        SparseGrid2D res = new SparseGrid2D(iLimite - iDepart, jLimite - jDepart);
+
+        int a = 0;
+        int b = 0;
+        for(int i = iDepart; i < iLimite; i++){
+            for(int j = jDepart; j < jLimite; j++){
+                res.setObjectLocation(e.grille.getObjectsAtLocation(i, j), a, b);
+                b++;
+            }
+            a++;
+            b = 0;
+        }
+        return res;
     }
 
     public int getX() {
