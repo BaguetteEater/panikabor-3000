@@ -38,23 +38,23 @@ public class Feu extends Superposable implements Steppable {
 
 		int probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
 
-    	if(propageable(environnement, x+1, y) && probabilite == 0)
-    		environnement.grille.setObjectLocation(new Feu(x+1, y), x+1, y);
+    	if(propageable(environnement, this.x+1, this.y) && probabilite == 0)
+    		environnement.ajoutFeu(this.x+1, this.y);
 
 		probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
 
     	if(propageable(environnement, x-1, y) && probabilite == 0)
-    		environnement.grille.setObjectLocation(new Feu(x-1, y), x-1, y);
+			environnement.ajoutFeu(this.x-1, this.y);
 
 		probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
 
     	if(propageable(environnement, x, y+1) && probabilite == 0)
-    		environnement.grille.setObjectLocation(new Feu(x, y+1), x, y+1);
+			environnement.ajoutFeu(this.x, this.y+1);
 
 		probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
 
     	if(propageable(environnement, x, y-1) && probabilite == 0)
-    		environnement.grille.setObjectLocation(new Feu(x, y-1), x, y-1);
+			environnement.ajoutFeu(this.x, this.y-1);
     	
     }
     

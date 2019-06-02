@@ -32,7 +32,7 @@ public class Humain extends Superposable implements Steppable {
     }
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
-        return Superposable.isCellulePleine(environnement, x, y) // vérifie que la cellule visée est accessible (capacité max non atteinte)
+        return !Superposable.isCellulePleine(environnement, x, y) // vérifie que la cellule visée est accessible (capacité max non atteinte)
                 && Math.abs(this.x - x) <= 1 // vérifie qu'on se déplace d'une seule case
                 && Math.abs(this.y - y) <= 1
                 && (this.x == x || this.y == y); // vérifie qu'on ne se déplace pas en diagonale
@@ -67,16 +67,16 @@ public class Humain extends Superposable implements Steppable {
                 environnement.getSortie().getKey(),
                 environnement.getSortie().getValue());
 
-        List<Pair<Integer, Integer>> murs = environnement.getMurs();
+        List<Pair<Integer, Integer>> nonTraversables = environnement.getNonTraversables();
         List<Node> path;
-        int[][] mursArray = new int[murs.size()][2];
+        int[][] mursArray = new int[nonTraversables.size()][2];
 
         for(int i = 0; i < mursArray.length; i++){
             for(int j = 0; j < mursArray[0].length; j++){
                 if(j == 0)
-                    mursArray[i][j] = murs.get(i).getKey();
+                    mursArray[i][j] = nonTraversables.get(i).getKey();
                 else
-                    mursArray[i][j] = murs.get(i).getValue();
+                    mursArray[i][j] = nonTraversables.get(i).getValue();
             }
         }
 

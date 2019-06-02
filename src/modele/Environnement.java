@@ -71,6 +71,12 @@ public class Environnement extends SimState {
 
 	}
 
+	public void ajoutFeu(int x, int y){
+		Feu newFeu = new Feu(x, y);
+		grille.setObjectLocation(newFeu, x, y);
+		schedule.scheduleRepeating(newFeu);
+	}
+
 	public Pair<Integer, Integer> getSortie() {
 
 		for (int i = 0; i < grille.getHeight(); i++) {
@@ -86,21 +92,19 @@ public class Environnement extends SimState {
 		return new Pair<>(null, null);
 	}
 
-	public List<Pair<Integer, Integer>> getMurs() {
+	public List<Pair<Integer, Integer>> getNonTraversables() {
 
-		List<Pair<Integer, Integer>> listMurs = new ArrayList<>();
+		List<Pair<Integer, Integer>> nonTraversables = new ArrayList<>();
 
 		for (int i = 0; i < grille.getHeight(); i++) {
 			for (int j = 0; j < grille.getWidth(); j++) {
 				if (grille.getObjectsAtLocation(i, j) != null) {
-					for (Object o : grille.getObjectsAtLocation(i, j).objs) {
-						if (o instanceof Mur)
-							listMurs.add(new Pair<>(i, j));
-					}
+					if (Superposable.isCellulePleine(this, i, j))
+						nonTraversables.add(new Pair<>(i, j));
 				}
 			}
 		}
-		return listMurs;
+		return nonTraversables;
 	}
 
 	private Int2D recupererEmplacementVide() {

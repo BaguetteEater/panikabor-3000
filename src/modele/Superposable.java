@@ -1,7 +1,5 @@
 package modele;
 
-import java.util.Arrays;
-
 public abstract class Superposable {
 
 	private int taille = 0;
@@ -33,6 +31,6 @@ public abstract class Superposable {
 					taille += ((Superposable) superposable).getTaille();
 			}
 		}
-		return taille <= Constantes.CAPACITE_MAX_CELLULE;
+		return taille >= Constantes.CAPACITE_MAX_CELLULE;
 	}
 }
