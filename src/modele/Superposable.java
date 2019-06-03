@@ -31,6 +31,7 @@ public abstract class Superposable {
 					taille += ((Superposable) superposable).getTaille();
 			}
 		}
+
 		return taille;
 	}
 

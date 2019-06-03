@@ -3,11 +3,8 @@ package gui;
 import java.awt.Color;
 
 import javax.swing.JFrame;
-import modele.Environnement;
-import modele.Feu;
-import modele.Humain;
-import modele.Mur;
-import modele.Sortie;
+
+import modele.*;
 import sim.display.Controller;
 import sim.display.Display2D;
 import sim.display.GUIState;
@@ -46,6 +43,7 @@ public class SimulationAvecUI extends GUIState {
 		yardPortrayal.setPortrayalForClass(Feu.class, getAgentFeuRepresentation());
 		yardPortrayal.setPortrayalForClass(Mur.class, getAgentMurRepresentation());
 		yardPortrayal.setPortrayalForClass(Sortie.class, getAgentSortieRepresentation());
+		yardPortrayal.setPortrayalForClass(Corps.class, getAgentCorpsRepresentation());
 		display.reset();
 		display.setBackdrop(Color.white);
 		display.repaint();
@@ -54,6 +52,14 @@ public class SimulationAvecUI extends GUIState {
 	private OvalPortrayal2D getAgentHumainRepresentation() {
 		OvalPortrayal2D r = new OvalPortrayal2D();
 		r.paint = Color.GREEN;
+		r.filled = true;
+		r.scale = 0.5;
+		return r;
+	}
+
+	private OvalPortrayal2D getAgentCorpsRepresentation() {
+		OvalPortrayal2D r = new OvalPortrayal2D();
+		r.paint = new Color(100, 100, 100, 200);
 		r.filled = true;
 		r.scale = 0.5;
 		return r;
