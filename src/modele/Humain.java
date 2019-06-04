@@ -6,20 +6,46 @@ import modele.pathfinding.Node;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Humain extends Superposable implements Steppable {
 
     private int x, y;
+    private int pointsDeVie = Constantes.VIE_MAX;
+    private List<Statut> statuts;
 
     public Humain(Environnement environnement, int x, int y) {
         this.x = x;
         this.y = y;
+        this.statuts = new ArrayList<>();
         setTaille(1);
+        ajouterStatut(Statut.EN_ALERTE); // todo: remplacer par la propagation des alertes
+    }
+
+    /**
+     * Retourne si l'humain possède un statut particulier
+     * @param statut
+     * @return Retourne vrai si l'humain possède le statut en paramètre
+     */
+    public boolean est(Statut statut) {
+        return this.statuts.contains(statut);
+    }
+
+    public void ajouterStatut(Statut statut) {
+        if (!est(statut))
+            this.statuts.add(statut);
+    }
+
+    public void retirerStatut(Statut statut) {
+        if (est(statut))
+            this.statuts.remove(statut);
     }
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
         return !Superposable.isCellulePleine(environnement, x, y) // vérifie que la cellule visée est accessible (capacité max non atteinte)
+                && !est(Statut.PAR_TERRE) // vérifie que l'humain n'est pas par terre
                 && Math.abs(this.x - x) <= 1 // vérifie qu'on se déplace d'une seule case
                 && Math.abs(this.y - y) <= 1
                 && (this.x == x || this.y == y); // vérifie qu'on ne se déplace pas en diagonale
@@ -87,28 +113,72 @@ public class Humain extends Superposable implements Steppable {
         return environnement.getSortie().getKey() == this.x && environnement.getSortie().getValue() == this.getY();
     }
 
+    public void tomber(Environnement environnement) {
+        if (!est(Statut.PAR_TERRE) && Superposable.isCellulePleine(environnement, x, y))
+            ajouterStatut(Statut.PAR_TERRE);
+    }
+
+    private void essayerDeSeRelever(Environnement environnement) {
+        if (est(Statut.EN_FEU))
+            return;
+
+        if (Superposable.getTailleCellule(environnement, x, y) == getTaille() || Math.random() < Constantes.PROBABILITE_SE_RELEVER)
+            retirerStatut(Statut.PAR_TERRE);
+    }
+
+    private void seFairePietiner(Environnement environnement) {
+        int tailleCellule = Superposable.getTailleCellule(environnement, x, y);
+        pointsDeVie -= (tailleCellule + getTaille());
+    }
+
+    private void potentiellementPrendreFeu(Environnement environnement) {
+        long nombreDeFeux = Arrays.stream(environnement.grille.getObjectsAtLocationOfObject(this).objs).filter(obj -> obj instanceof Feu).count();
+        if (nombreDeFeux >= 1) {
+            ajouterStatut(Statut.EN_FEU);
+        }
+    }
+
+    private void bruler() {
+        pointsDeVie -= Constantes.DOULEUR_BRULURE;
+    }
+
+    public void sAlerter(Environnement environnement) {
+        // TODO: vérifier dans la perception si un Humain est EN_ALERTE
+        ajouterStatut(Statut.EN_ALERTE);
+    }
+
     @Override
     public void step(SimState simState) {
         Environnement environnement = (Environnement) simState;
-        if(!estSorti(environnement))
-            essayerDeSortir(environnement);
+
+        if (pointsDeVie <= 0 || estSorti(environnement))
+            return;
+
+        if (est(Statut.PAR_TERRE)) {
+            seFairePietiner(environnement);
+            essayerDeSeRelever(environnement);
+        }
+
+        if (est(Statut.EN_FEU))
+            bruler();
         else
-            System.out.println("L'humain est sorti");
+            potentiellementPrendreFeu(environnement);
+
+        if (est(Statut.EN_ALERTE))
+            essayerDeSortir(environnement);
+
+        if (estSorti(environnement))
+            environnement.sortir(this);
+
+        if (pointsDeVie <= 0)
+            environnement.tuer(this);
     }
 
     public int getX() {
         return x;
     }
 
-    public void setX(int x) {
-        this.x = x;
-    }
-
     public int getY() {
         return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 }

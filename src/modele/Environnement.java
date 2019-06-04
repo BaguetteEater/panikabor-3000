@@ -119,4 +119,15 @@ public class Environnement extends SimState {
 		}
 		return location;
 	}
+
+	public void tuer(Humain humain) {
+		grille.remove(humain);
+		grille.setObjectLocation(new Corps(humain.getX(), humain.getY()), humain.getX(), humain.getY());
+		System.out.println("Humain a été tué");
+	}
+
+	public void sortir(Humain humain) {
+		grille.remove(humain);
+		System.out.println("Humain est sorti");
+	}
 }
