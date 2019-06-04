@@ -76,6 +76,10 @@ public class Environnement extends SimState {
 		grille.setObjectLocation(newFeu, x, y);
 		schedule.scheduleRepeating(newFeu);
 	}
+	
+	public void supprimerFeu(Feu feu) {
+		grille.setObjectLocation(new TerrainBrule(feu.getX(), feu.getY()), feu.getX(), feu.getY());
+	}
 
 	public Pair<Integer, Integer> getSortie() {
 
