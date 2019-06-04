@@ -43,6 +43,8 @@ public class SimulationAvecUI extends GUIState {
 		yardPortrayal.setPortrayalForClass(Feu.class, getAgentFeuRepresentation());
 		yardPortrayal.setPortrayalForClass(Mur.class, getAgentMurRepresentation());
 		yardPortrayal.setPortrayalForClass(Sortie.class, getAgentSortieRepresentation());
+		yardPortrayal.setPortrayalForClass(TerrainBrule.class, getTerrainBruleRepresentation());
+		yardPortrayal.setPortrayalForNull(null);
 		yardPortrayal.setPortrayalForClass(Corps.class, getAgentCorpsRepresentation());
 		display.reset();
 		display.setBackdrop(Color.white);
@@ -88,7 +90,15 @@ public class SimulationAvecUI extends GUIState {
 		r.scale = 0.8;
 		return r;
 	}
-	
+
+	private OvalPortrayal2D getTerrainBruleRepresentation() {
+		OvalPortrayal2D r = new OvalPortrayal2D();
+		r.paint = Color.LIGHT_GRAY;
+		r.filled = true;
+		r.scale = 0.4;
+		return r;
+	}
+
 	public void init(Controller c) {
 		  super.init(c);
 		  display = new Display2D(Constantes.TAILLE_SIMULATION,Constantes.TAILLE_SIMULATION,this);
