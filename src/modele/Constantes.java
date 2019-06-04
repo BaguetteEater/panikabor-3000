@@ -18,5 +18,8 @@ public class Constantes {
      * Nombre de places sur une cellule. Cf. Superposable
      */
     public final static int CAPACITE_MAX_CELLULE = 3;
+    
+ // nombre maximum de pieces supplementaires
+    public final static int SALLES_MAX = 3;
 }
 

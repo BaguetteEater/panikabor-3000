@@ -22,7 +22,7 @@ public class Environnement extends SimState {
 		System.out.println("Simulation intialisee");
 		super.start();
 		grille.clear();
-		ajouterAgentMur();
+		ajouterContour();
 		ajouterAgentSortie();
 		ajouterAgentHumain();
 		ajouterAgentFeu();
@@ -45,7 +45,7 @@ public class Environnement extends SimState {
 			Int2D location = recupererEmplacementVide();
 			Feu feu = new Feu(location.x, location.y);
 			grille.setObjectLocation(feu, location.x, location.y);
-			schedule.scheduleRepeating(feu);
+			feu.setStoppable(schedule.scheduleRepeating(feu));
 		}
 	}
 
@@ -75,7 +75,7 @@ public class Environnement extends SimState {
 		grille.setObjectLocation(sortie, coordonneeSortieX, coordonneeSortieY);
 	}
 
-	private void ajouterAgentMur() {
+	private void ajouterContour() {
 		for (int i = 0; i < grille.getWidth(); i++) {
 			grille.setObjectLocation(new Mur(i, 0), i, 0);
 			grille.setObjectLocation(new Mur(i, grille.getHeight() - 1), i, grille.getHeight() - 1);
@@ -90,11 +90,14 @@ public class Environnement extends SimState {
 	public void ajoutFeu(int x, int y) {
 		Feu newFeu = new Feu(x, y);
 		grille.setObjectLocation(newFeu, x, y);
-		schedule.scheduleRepeating(newFeu);
+		newFeu.setStoppable(schedule.scheduleRepeating(newFeu));
+	
 	}
 
 	public void supprimerFeu(Feu feu) {
 		grille.setObjectLocation(new TerrainBrule(feu.getX(), feu.getY()), feu.getX(), feu.getY());
+		feu.getStoppable().stop();
+		grille.remove(feu);
 	}
 
 	public Pair<Integer, Integer> getSortie() {

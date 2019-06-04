@@ -2,17 +2,24 @@ package modele;
 
 import sim.engine.SimState;
 import sim.engine.Steppable;
+import sim.engine.Stoppable;
 
 public class Feu extends Superposable implements Steppable {
 	
 	private int x, y;
 	private int dureeDeVie;
+	private Stoppable stoppable;
 	
 	public Feu(int x, int y) {
 		this.x = x;
 		this.y = y;
 		this.dureeDeVie = Constantes.DUREE_DE_VIE_FEU;
 		setTaille(0);
+	}
+	
+	@Override
+	public void finalize( ) {
+		System.out.println("je suis un feu mort");
 	}
 	
     @Override
@@ -118,6 +125,14 @@ public class Feu extends Superposable implements Steppable {
 
     public void setY(int y) {
         this.y = y;
+    }
+    
+    public void setStoppable(Stoppable stop) {
+        this.stoppable = stop;
+    }
+    
+    public Stoppable getStoppable() {
+        return stoppable;
     }
     
 }
