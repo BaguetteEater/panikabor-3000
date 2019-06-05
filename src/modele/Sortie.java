@@ -24,4 +24,12 @@ public class Sortie extends Inerte {
 
         setTaille(Constantes.CAPACITE_MAX_CELLULE - debit); // Si debit == 1, on ne laisse passer 1 humain à la fois
     }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
 }

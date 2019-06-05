@@ -17,11 +17,6 @@ public class Feu extends Superposable implements Steppable {
 		setTaille(0);
 	}
 	
-	@Override
-	public void finalize( ) {
-		System.out.println("je suis un feu mort");
-	}
-	
     @Override
     public void step(SimState simState) {
     	

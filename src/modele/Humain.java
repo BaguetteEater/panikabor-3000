@@ -174,6 +174,10 @@ public class Humain extends Superposable implements Steppable {
             environnement.tuer(this);
     }
 
+    public int getPointsDeVie() {
+        return pointsDeVie;
+    }
+
     public int getX() {
         return x;
     }
