@@ -4,6 +4,14 @@ public abstract class Superposable {
 
 	private int taille = 0;
 
+	int x;
+	int y;
+
+	public Superposable(int x, int y){
+		this.x = x;
+		this.y = y;
+	}
+
 	public int getTaille() {
 		return taille;
 	}
@@ -32,5 +40,13 @@ public abstract class Superposable {
 			}
 		}
 		return taille >= Constantes.CAPACITE_MAX_CELLULE;
+	}
+
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
 	}
 }

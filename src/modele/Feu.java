@@ -5,11 +5,8 @@ import sim.engine.Steppable;
 
 public class Feu extends Superposable implements Steppable {
 	
-	private int x, y;
-	
 	public Feu(int x, int y) {
-		this.x = x;
-		this.y = y;
+		super(x, y);
 		setTaille(0);
 	}
 	
@@ -56,21 +53,5 @@ public class Feu extends Superposable implements Steppable {
     	if(propageable(environnement, x, y-1) && probabilite == 0)
 			environnement.ajoutFeu(this.x, this.y-1);
     	
-    }
-    
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
     }
 }
