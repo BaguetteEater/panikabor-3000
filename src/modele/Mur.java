@@ -9,4 +9,12 @@ public class Mur extends Inerte {
     	this.y = y;
         setInfranchissable();
     }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
 }

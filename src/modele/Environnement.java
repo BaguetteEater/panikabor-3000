@@ -23,12 +23,21 @@ public class Environnement extends SimState {
 		super.start();
 		grille.clear();
 		ajouterContour();
-		ajouterAgentSortie();
-		ajouterAgentHumain();
-		ajouterAgentFeu();
+		ajouterAgentsSortie();
+		ajouterAgentsHumain();
+		ajouterAgentsFeu();
+		ajouterAgentsMeuble();
 	}
 
-	private void ajouterAgentHumain() {
+	private void ajouterAgentsMeuble() {
+		for (int i = 0; i < Constantes.NOMBRE_MEUBLES; i++) {
+			Int2D location = recupererEmplacementVide();
+			Meuble meuble = new Meuble(location.x, location.y, 3);
+			grille.setObjectLocation(meuble, location.x, location.y);
+		}
+	}
+
+	private void ajouterAgentsHumain() {
 		// TODO : modifier les valeurs de x et y en fonction du placement initial des
 		// humains
 		for (int i = 0; i < Constantes.NOMBRE_HUMAINS; i++) {
@@ -39,7 +48,7 @@ public class Environnement extends SimState {
 		}
 	}
 
-	private void ajouterAgentFeu() {
+	private void ajouterAgentsFeu() {
 		// TODO : modifier les valeurs de x et y en fonction du placement initial du feu
 		for (int i = 0; i < Constantes.NOMBRE_FOYERS; i++) {
 			Int2D location = recupererEmplacementVide();
@@ -49,7 +58,7 @@ public class Environnement extends SimState {
 		}
 	}
 
-	private void ajouterAgentSortie() {
+	private void ajouterAgentsSortie() {
 		int quel_cote = (int) (Math.random() * 4);
 		int coordonneeSortieX = 0, coordonneeSortieY = 0;
 		switch (quel_cote) {
