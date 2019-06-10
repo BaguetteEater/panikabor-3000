@@ -1,8 +1,6 @@
 package modele;
 
 public class Sortie extends Inerte {
-
-	private int x, y;
 	
 	public Sortie(int debit, int x, int y) {
         super(x, y);
@@ -15,15 +13,4 @@ public class Sortie extends Inerte {
         setTaille(Constantes.CAPACITE_MAX_CELLULE - debit); // Si debit == 1, on ne laisse passer 1 humain à la fois
 
 	}
-
-
-    @Override
-    public int getX() {
-        return this.x;
-    }
-
-    @Override
-    public int getY() {
-        return this.y;
-    }
 }

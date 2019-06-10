@@ -10,6 +10,7 @@ import java.util.List;
 
 public class Environnement extends SimState {
 
+	public int coordonneeSortieX, coordonneeSortieY;
 	public SparseGrid2D grille = new SparseGrid2D(gui.Constantes.TAILLE_GRILLE, gui.Constantes.TAILLE_GRILLE);
 
 	public Environnement(long seed) {
@@ -21,15 +22,24 @@ public class Environnement extends SimState {
 		System.out.println("Simulation intialisee");
 		super.start();
 		grille.clear();
-		ajouterAgentMur();
-		ajouterAgentSortie();
-		ajouterAgentHumain();
-		ajouterAgentFeu();
+		ajouterContour();
+		ajouterAgentsSortie();
+		ajouterAgentsHumain();
+		ajouterAgentsFeu();
+		ajouterAgentsMeuble();
 
 		this.getSortedObjectInList(new Humain(this, 4, 4));
 	}
 
-	private void ajouterAgentHumain() {
+	private void ajouterAgentsMeuble() {
+		for (int i = 0; i < Constantes.NOMBRE_MEUBLES; i++) {
+			Int2D location = recupererEmplacementVide();
+			Meuble meuble = new Meuble(location.x, location.y, 3);
+			grille.setObjectLocation(meuble, location.x, location.y);
+		}
+	}
+
+	private void ajouterAgentsHumain() {
 		// TODO : modifier les valeurs de x et y en fonction du placement initial des
 		// humains
 		for (int i = 0; i < Constantes.NOMBRE_HUMAINS; i++) {
@@ -40,35 +50,50 @@ public class Environnement extends SimState {
 		}
 	}
 
-	private void ajouterAgentFeu() {
+	private void ajouterAgentsFeu() {
 		// TODO : modifier les valeurs de x et y en fonction du placement initial du feu
 		for (int i = 0; i < Constantes.NOMBRE_FOYERS; i++) {
 			Int2D location = recupererEmplacementVide();
 			Feu feu = new Feu(location.x, location.y);
 			grille.setObjectLocation(feu, location.x, location.y);
-			schedule.scheduleRepeating(feu);
+			feu.setStoppable(schedule.scheduleRepeating(feu));
 		}
 	}
 
-	private void ajouterAgentSortie() {
-		// TODO : modifier les valeurs de x et y en fonction du placement initial des
-		// sorties
-		Sortie sortie = new Sortie(1, 10, 0);
-		grille.setObjectLocation(sortie, 10, 0);
+	private void ajouterAgentsSortie() {
+		int quel_cote = (int) (Math.random() * 4);
+		int coordonneeSortieX = 0, coordonneeSortieY = 0;
+		switch (quel_cote) {
+		case 0:
+			coordonneeSortieX = 0;
+			coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
+			break;
+		case 1:
+			coordonneeSortieX = grille.getWidth() - 1;
+			coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
+			break;
+		case 2:
+			coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
+			coordonneeSortieY = 0;
+			break;
+		case 3:
+			coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
+			coordonneeSortieY = grille.getHeight() - 1;
+			break;
+		}
+		grille.removeObjectsAtLocation(coordonneeSortieX, coordonneeSortieY);
+		Sortie sortie = new Sortie(1, coordonneeSortieX, coordonneeSortieY);
+		grille.setObjectLocation(sortie, coordonneeSortieX, coordonneeSortieY);
 	}
 
-	private void ajouterAgentMur() {
-		// TODO : modifier les valeurs de x et y en fonction du placement initial des
-		// murs
-		for (int i = 0; i < grille.getHeight(); i++) {
-			if (i != 10) {
-				grille.setObjectLocation(new Mur(i, 0), i, 0);
-			}
-			grille.setObjectLocation(new Mur(i, grille.getWidth() - 1), i, grille.getWidth() - 1);
+	private void ajouterContour() {
+		for (int i = 0; i < grille.getWidth(); i++) {
+			grille.setObjectLocation(new Mur(i, 0), i, 0);
+			grille.setObjectLocation(new Mur(i, grille.getHeight() - 1), i, grille.getHeight() - 1);
 		}
-		for (int j = 1; j < grille.getWidth()-1; j++) {
+		for (int j = 0; j < grille.getHeight(); j++) {
 			grille.setObjectLocation(new Mur(0, j), 0, j);
-			grille.setObjectLocation(new Mur(grille.getHeight() - 1, j), grille.getHeight() - 1, j);
+			grille.setObjectLocation(new Mur(grille.getWidth() - 1, j), grille.getWidth() - 1, j);
 		}
 		////
 		grille.setObjectLocation(new Mur(5, 4), 5, 4);
@@ -77,10 +102,17 @@ public class Environnement extends SimState {
 		/////
 	}
 
-	public void ajoutFeu(int x, int y){
+	public void ajoutFeu(int x, int y) {
 		Feu newFeu = new Feu(x, y);
 		grille.setObjectLocation(newFeu, x, y);
-		schedule.scheduleRepeating(newFeu);
+		newFeu.setStoppable(schedule.scheduleRepeating(newFeu));
+	
+	}
+
+	public void supprimerFeu(Feu feu) {
+		grille.setObjectLocation(new TerrainBrule(feu.getX(), feu.getY()), feu.getX(), feu.getY());
+		feu.getStoppable().stop();
+		grille.remove(feu);
 	}
 
 	public Pair<Integer, Integer> getSortie() {
@@ -165,5 +197,16 @@ public class Environnement extends SimState {
 			location = new Int2D(random.nextInt(grille.getWidth()), random.nextInt(grille.getHeight()));
 		}
 		return location;
+	}
+
+	public void tuer(Humain humain) {
+		grille.remove(humain);
+		grille.setObjectLocation(new Corps(humain.getX(), humain.getY()), humain.getX(), humain.getY());
+		System.out.println("Humain a été tué");
+	}
+
+	public void sortir(Humain humain) {
+		grille.remove(humain);
+		System.out.println("Humain est sorti");
 	}
 }

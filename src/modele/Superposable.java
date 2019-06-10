@@ -31,7 +31,7 @@ public abstract class Superposable {
 		this.setTaille(Constantes.CAPACITE_MAX_CELLULE);
 	}
 
-	public static boolean isCellulePleine(Environnement environnement, int xCellule, int yCellule) {
+	public static int getTailleCellule(Environnement environnement, int xCellule, int yCellule) {
 		int taille = 0;
 		if (environnement.grille.getObjectsAtLocation(xCellule, yCellule) != null) {
 			for (Object superposable : environnement.grille.getObjectsAtLocation(xCellule, yCellule)) {
@@ -39,7 +39,12 @@ public abstract class Superposable {
 					taille += ((Superposable) superposable).getTaille();
 			}
 		}
-		return taille >= Constantes.CAPACITE_MAX_CELLULE;
+
+		return taille;
+	}
+
+	public static boolean isCellulePleine(Environnement environnement, int xCellule, int yCellule) {
+		return getTailleCellule(environnement, xCellule, yCellule) >= Constantes.CAPACITE_MAX_CELLULE;
 	}
 
 	public int getX() {

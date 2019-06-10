@@ -2,11 +2,16 @@ package modele;
 
 import sim.engine.SimState;
 import sim.engine.Steppable;
+import sim.engine.Stoppable;
 
 public class Feu extends Superposable implements Steppable {
+
+	private int dureeDeVie;
+	private Stoppable stoppable;
 	
 	public Feu(int x, int y) {
 		super(x, y);
+		this.dureeDeVie = Constantes.DUREE_DE_VIE_FEU;
 		setTaille(0);
 	}
 	
@@ -15,9 +20,16 @@ public class Feu extends Superposable implements Steppable {
     	
     	Environnement environnement = (Environnement)simState;
     	
-    	// Probabilité de propagation
-    	// Le feu se propage si la probabilité vaut 0
-    	propager(environnement);
+    	int probabiliteEteindre = (int) (Math.random()*Constantes.PROBABILITE_ETEINDRE); 
+    	if(probabiliteEteindre == 0 && nombreFeuxAdjacents(environnement) < 3) 
+    		dureeDeVie -= 6;
+    	
+    	if(dureeDeVie > 0) {
+    		propager(environnement);
+    		dureeDeVie --;
+    	}
+    	else 
+    		eteindre(environnement);
     }
     
     
@@ -26,11 +38,13 @@ public class Feu extends Superposable implements Steppable {
 			return true;
 		}
     	for(Object object : environnement.grille.getObjectsAtLocation(x, y).objs) {
-    		if(object instanceof Feu || object instanceof Mur) return false;
+    		if(object instanceof Feu || object instanceof Mur || object instanceof TerrainBrule) return false;
     	}
     	return true;
     }
     
+    // Probabilité de propagation
+	// Le feu se propage si la variable probabilite vaut 0
     private void propager(Environnement environnement) {
 
 		int probabilite = (int)(Math.random() * Constantes.PROBABILITE_PROPAGATION);
@@ -53,5 +67,64 @@ public class Feu extends Superposable implements Steppable {
     	if(propageable(environnement, x, y-1) && probabilite == 0)
 			environnement.ajoutFeu(this.x, this.y-1);
     	
+    }
+    
+    private void eteindre(Environnement environnement) {
+    	environnement.supprimerFeu(this);
+    }
+    
+    private int nombreFeuxAdjacents(Environnement environnement) {
+
+		int nombreFeuxAdj = 0;
+
+		if (environnement.grille.getObjectsAtLocation(this.x + 1, this.y) != null) {
+			for (Object o : environnement.grille.getObjectsAtLocation(this.x + 1, this.y).objs) {
+				if (o instanceof Feu)
+					nombreFeuxAdj++;
+			}
+		}
+		if (environnement.grille.getObjectsAtLocation(this.x - 1, this.y) != null) {
+			for (Object o : environnement.grille.getObjectsAtLocation(this.x - 1, this.y).objs) {
+				if (o instanceof Feu)
+					nombreFeuxAdj++;
+			}
+		}
+		if (environnement.grille.getObjectsAtLocation(this.x, this.y + 1) != null) {
+			for (Object o : environnement.grille.getObjectsAtLocation(this.x, this.y + 1).objs) {
+				if (o instanceof Feu)
+					nombreFeuxAdj++;
+			}
+		}
+		if (environnement.grille.getObjectsAtLocation(this.x, this.y - 1) != null) {
+			for (Object o : environnement.grille.getObjectsAtLocation(this.x, this.y - 1).objs) {
+				if (o instanceof Feu)
+					nombreFeuxAdj++;
+			}
+		}
+		return nombreFeuxAdj;
+	}
+    
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+    
+    public void setStoppable(Stoppable stop) {
+        this.stoppable = stop;
+    }
+    
+    public Stoppable getStoppable() {
+        return stoppable;
     }
 }

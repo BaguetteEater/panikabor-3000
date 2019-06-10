@@ -6,4 +6,12 @@ public class Mur extends Inerte {
     	super(x, y);
         setInfranchissable();
     }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
 }
