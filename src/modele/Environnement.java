@@ -154,7 +154,7 @@ public class Environnement extends SimState {
 		return toSortList;
 	}
 
-	private int calculateDistance( int x1, int y1, int x2, int y2) {
+	public static int calculateDistance( int x1, int y1, int x2, int y2) {
 		return (int) Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
 	}
 

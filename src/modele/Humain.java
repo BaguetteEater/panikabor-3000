@@ -3,10 +3,12 @@ package modele;
 import javafx.util.Pair;
 import modele.pathfinding.AStar;
 import modele.pathfinding.Node;
+import sim.app.woims.Vector2D;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.field.grid.SparseGrid2D;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Humain extends Superposable implements Steppable {
@@ -23,7 +25,6 @@ public class Humain extends Superposable implements Steppable {
     @Override
     public void step(SimState simState) {
         Environnement environnement = (Environnement) simState;
-
         if(!estSorti(environnement))
             essayerDeSortir(environnement);
         else
@@ -111,6 +112,67 @@ public class Humain extends Superposable implements Steppable {
      */
     private void percevoir(Environnement e){
 
+        List<Superposable> objSorted = e.getSortedObjectInList(this);
+        List<Superposable> objVisibles = new ArrayList<>();
+        boolean isObjetEntreAB = false;
 
+        //Le premier est toujours visible vu que c'est l'objet le plus proche de l'humain
+        objVisibles.add(objSorted.get(0));
+
+        for(Superposable b : objSorted) {
+            for(Superposable c : objVisibles){
+
+                //Si il n'y a pas d'objet entre A et B et que ABC sont collinéaires
+                if(!isObjetEntreAB && sontCollineraires(b.x, b.y, c.x, c.y)) {
+                    System.out.println(c);
+                    System.out.println("c traversable  : " + c.isTraversable());
+                    //Alors on regarde si C est entre A et B et si il est traversable
+                    isObjetEntreAB = estEntreDeuxPoints(b.x, b.y, c.x, c.y) && !c.isTraversable();
+                }
+            }
+
+            if(!isObjetEntreAB)
+                objVisibles.add(b);
+        }
+
+        System.out.println("obj visible : "+objVisibles);
+        
+        objVisibles.forEach(obj -> {
+            e.ajoutFeu(obj.x, obj.y);
+        });
+    }
+
+    /**
+     * Verifie que trois points A, B et C tel que A(Ax, Ay), B(Bx, By), C(Cx, Cy) sont collinéaires avec le point A obligatoirement assimilé à l'humain
+     * @param Bx les coordonnées x de B
+     * @param By les coordonnées y de B
+     * @param Cx les coordonnées x de C
+     * @param Cy les coordonnées y de C
+     * @return true c'est ils sont collineaires, false sinon
+     */
+    private boolean sontCollineraires(int Bx, int By, int Cx, int Cy){
+        Vector2D AC = new Vector2D(Cx-this.x, Cy-this.y);
+        Vector2D AB = new Vector2D(Cx-Bx, Cy-By);
+
+        double determinant = AC.x*AB.y - AB.x*AC.y;
+
+        return determinant == 0;
+    }
+
+    /**
+     * Verifie si le point C est situé sur le segment AB respectivement situé en (Cx, Cy), (Ax, Ay) et (Bx, By) avec A obligatoirement assimilé à l'humain
+     * @param Bx les coordonnées x de B
+     * @param By les coordonnées y de B
+     * @param Cx les coordonnées x de C
+     * @param Cy les coordonnées y de C
+     * @return true si C est entre A et B, false sinon.
+     */
+    private boolean estEntreDeuxPoints(int Bx, int By, int Cx, int Cy){
+
+        Vector2D CA = new Vector2D(this.x-Cx,this.y-Cy);
+        Vector2D CB = new Vector2D(Bx-Cx,By-Cy);
+        double produitScalaire = (CA.x*CB.x) + (CA.y*CB.y);
+
+        return produitScalaire <= 0;
     }
 }

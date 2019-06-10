@@ -24,7 +24,7 @@ public abstract class Superposable {
 	}
 
 	public boolean isTraversable() {
-		return taille <= Constantes.CAPACITE_MAX_CELLULE;
+		return taille < Constantes.CAPACITE_MAX_CELLULE;
 	}
 
 	public void setInfranchissable() {
