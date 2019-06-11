@@ -19,8 +19,9 @@ public class Humain extends Superposable implements Steppable {
     private int pointsDeVie = Constantes.VIE_MAX;
     private List<Statut> statuts;
     private Stoppable stoppable;
+    private Comportement comportement;
 
-    public Humain(Environnement environnement, int x, int y) {
+    public Humain(Environnement environnement, int x, int y, Comportement comportement) {
         super(x, y);
 
         visionMasque = new boolean[gui.Constantes.TAILLE_GRILLE][gui.Constantes.TAILLE_GRILLE];
@@ -30,6 +31,8 @@ public class Humain extends Superposable implements Steppable {
         setTaille(1);
 
         ajouterStatut(Statut.EN_ALERTE); // todo: remplacer par la propagation des alertes
+        
+        this.comportement = comportement;
     }
 
     @Override
@@ -50,9 +53,23 @@ public class Humain extends Superposable implements Steppable {
             potentiellementPrendreFeu(environnement);
 
         percevoir(environnement);
-
-        if (est(Statut.EN_ALERTE))
-            essayerDeSortir(environnement);
+        
+        
+        if (est(Statut.EN_ALERTE) && !this.est(Statut.PAR_TERRE)) {
+        	if(this.comportement.relever) {
+            	boolean aReleve = releve(environnement);
+            	if(!aReleve) {
+            		essayerDeSortir(environnement);
+            	}
+            } else {
+            	essayerDeSortir(environnement);
+            }
+        }
+            
+        
+        if(this.comportement.pousserPourPasser && !this.est(Statut.PAR_TERRE)) {
+        	pousser(environnement);
+        }
 
         if (estSorti(environnement))
             environnement.sortir(this);
@@ -62,6 +79,32 @@ public class Humain extends Superposable implements Steppable {
 
         percevoir(environnement);
     }
+    
+    private void pousser (Environnement environnement) {
+    	if (environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
+			return;
+		}
+		for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+    		if(object instanceof Humain && object != this && !((Humain)object).est(Statut.PAR_TERRE)) {
+    			((Humain)object).ajouterStatut(Statut.PAR_TERRE);
+    		}
+    	}
+    }
+    
+    private boolean releve(Environnement environnement) {
+    	boolean aReleve = false;
+    	if (environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
+			return aReleve;
+		}
+		for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+    		if(object instanceof Humain && object != this && ((Humain)object).est(Statut.PAR_TERRE)) {
+    			((Humain)object).retirerStatut(Statut.PAR_TERRE);
+    			aReleve = true;
+    		}
+    	}
+		return aReleve;
+    }
+    
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
         return !Superposable.isCellulePleine(environnement, x, y) // vérifie que la cellule visée est accessible (capacité max non atteinte)
@@ -111,6 +154,21 @@ public class Humain extends Superposable implements Steppable {
                 else
                     mursArray[i][j] = nonTraversables.get(i).getValue();
             }
+        }
+        
+        if(!this.comportement.marcherSurLeFeu) {
+        	List<Pair<Integer, Integer>> feuLocation = environnement.getFeuLocation();
+        	int[][] feuArray = new int[feuLocation.size()][2];
+        	
+        	for(int i = 0; i < feuArray.length; i++){
+                for(int j = 0; j < feuArray[0].length; j++){
+                    if(j == 0)
+                    	feuArray[i][j] = feuLocation.get(i).getKey();
+                    else
+                    	feuArray[i][j] = feuLocation.get(i).getValue();
+                }
+            }
+        	cerveau.setBlocks(feuArray);
         }
 
         cerveau.setBlocks(mursArray);
@@ -192,8 +250,16 @@ public class Humain extends Superposable implements Steppable {
     }
 
     private void seFairePietiner(Environnement environnement) {
-        int tailleCellule = Superposable.getTailleCellule(environnement, x, y);
-        pointsDeVie -= (tailleCellule + getTaille());
+        //int tailleCellule = Superposable.getTailleCellule(environnement, x, y);
+    	if (environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
+			return;
+		}
+		for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+    		if(object instanceof Humain && object != this && !((Humain)object).est(Statut.PAR_TERRE)) {
+    			pointsDeVie -= Constantes.DEGATS_PIETINEMENT;
+    		}
+    	}
+        
     }
 
     private void potentiellementPrendreFeu(Environnement environnement) {

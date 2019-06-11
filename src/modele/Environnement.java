@@ -28,7 +28,7 @@ public class Environnement extends SimState {
 		ajouterAgentsFeu();
 		ajouterAgentsMeuble();
 
-		this.getSortedObjectInList(new Humain(this, 4, 4));
+		//this.getSortedObjectInList(new Humain(this, 4, 4, ));
 	}
 
 	private void ajouterAgentsMeuble() {
@@ -42,12 +42,24 @@ public class Environnement extends SimState {
 	private void ajouterAgentsHumain() {
 		// TODO : modifier les valeurs de x et y en fonction du placement initial des
 		// humains
-		for (int i = 0; i < Constantes.NOMBRE_HUMAINS; i++) {
+//		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_HERO; i++) {
+//			Int2D location = recupererEmplacementVide();
+//			Humain humain = new Humain(this, location.x, location.y, Constantes.HERO);
+//			grille.setObjectLocation(humain, location.x, location.y);
+//			humain.setStoppable(schedule.scheduleRepeating(humain));
+//		}
+		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_EGOISTE; i++) {
 			Int2D location = recupererEmplacementVide();
-			Humain humain = new Humain(this, location.x, location.y);
+			Humain humain = new Humain(this, location.x, location.y, Constantes.EGOISTE);
 			grille.setObjectLocation(humain, location.x, location.y);
 			humain.setStoppable(schedule.scheduleRepeating(humain));
 		}
+//		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_PEUREUX; i++) {
+//			Int2D location = recupererEmplacementVide();
+//			Humain humain = new Humain(this, location.x, location.y, Constantes.PEUREUX);
+//			grille.setObjectLocation(humain, location.x, location.y);
+//			humain.setStoppable(schedule.scheduleRepeating(humain));
+//		}
 	}
 
 	private void ajouterAgentsFeu() {
@@ -139,6 +151,33 @@ public class Environnement extends SimState {
 		}
 		return nonTraversables;
 	}
+	
+	// Liste des coordonnées des flammes
+	public List<Pair<Integer, Integer>> getFeuLocation() {
+		
+		List<Pair<Integer, Integer>> feuLocation = new ArrayList<>();
+		
+		for (int i = 0; i < grille.getHeight(); i++) {
+			for (int j = 0; j < grille.getWidth(); j++) {
+				if (grille.getObjectsAtLocation(i, j) != null) {
+					if (estEnFeu(i,j))
+						feuLocation.add(new Pair<>(i, j));
+				}
+			}
+		}
+		return feuLocation;
+	}
+	
+	// Check si une case est en feu
+	public boolean estEnFeu(int x, int y) {
+		if (this.grille.getObjectsAtLocation(x, y) == null) {
+			return false;
+		}
+		for(Object object : this.grille.getObjectsAtLocation(x, y).objs) {
+    		if(object instanceof Feu) return true;
+    	}
+    	return false;
+	}
 
 	private List<Superposable> getObjetsDeGrilleEnListe(){
 
@@ -160,6 +199,7 @@ public class Environnement extends SimState {
 		}
 		return res;
 	}
+	
 
 	public List<Superposable> getSortedObjectInList(Humain h){
 
