@@ -3,8 +3,11 @@ package modele;
 import javafx.util.Pair;
 import modele.pathfinding.AStar;
 import modele.pathfinding.Node;
+import sim.app.woims.Vector2D;
 import sim.engine.SimState;
 import sim.engine.Steppable;
+import sim.engine.Stoppable;
+import sim.field.grid.SparseGrid2D;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,35 +15,52 @@ import java.util.List;
 
 public class Humain extends Superposable implements Steppable {
 
-    private int x, y;
+    private boolean[][] visionMasque;
     private int pointsDeVie = Constantes.VIE_MAX;
     private List<Statut> statuts;
+    private Stoppable stoppable;
 
     public Humain(Environnement environnement, int x, int y) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
+
+        visionMasque = new boolean[gui.Constantes.TAILLE_GRILLE][gui.Constantes.TAILLE_GRILLE];
+        resetMasque();
+
         this.statuts = new ArrayList<>();
         setTaille(1);
+
         ajouterStatut(Statut.EN_ALERTE); // todo: remplacer par la propagation des alertes
     }
 
-    /**
-     * Retourne si l'humain possède un statut particulier
-     * @param statut
-     * @return Retourne vrai si l'humain possède le statut en paramètre
-     */
-    public boolean est(Statut statut) {
-        return this.statuts.contains(statut);
-    }
+    @Override
+    public void step(SimState simState) {
+        Environnement environnement = (Environnement) simState;
 
-    public void ajouterStatut(Statut statut) {
-        if (!est(statut))
-            this.statuts.add(statut);
-    }
+        if (pointsDeVie <= 0 || estSorti(environnement))
+            return;
 
-    public void retirerStatut(Statut statut) {
-        if (est(statut))
-            this.statuts.remove(statut);
+        if (est(Statut.PAR_TERRE)) {
+            seFairePietiner(environnement);
+            essayerDeSeRelever(environnement);
+        }
+
+        if (est(Statut.EN_FEU))
+            bruler();
+        else
+            potentiellementPrendreFeu(environnement);
+
+        percevoir(environnement);
+
+        if (est(Statut.EN_ALERTE))
+            essayerDeSortir(environnement);
+
+        if (estSorti(environnement))
+            environnement.sortir(this);
+
+        if (pointsDeVie <= 0)
+            environnement.tuer(this);
+
+        percevoir(environnement);
     }
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
@@ -113,6 +133,51 @@ public class Humain extends Superposable implements Steppable {
         return environnement.getSortie().getKey() == this.x && environnement.getSortie().getValue() == this.getY();
     }
 
+    /**
+     * Cette methode permet d'obtenir le champ de vision d'un humain via un methode simple
+     * On parcourt chaque case et on regarde si il existe une case entre celle ci et l'agent humain.
+     *
+     * Pour verifier cela, on considère le triangle ABC avec A, l'humain, B la premiere case et C la deuxième case.
+     * Si l'aire d'ABC est egale à 0, alors les trois points sont sur la même ligne et l'agent ne peut voir la plus eloignée des 2
+     *
+     * @param e L'environnement complet utilisé
+     */
+    private void percevoir(Environnement e) {
+
+        List<Superposable> objSorted = e.getSortedObjectInList(this);
+        List<Superposable> objVisibles = new ArrayList<>();
+        boolean isObjetEntreAB = false;
+
+        //Le premier est toujours visible vu que c'est l'objet le plus proche de l'humain et on le retire pour eviter de l'ajouter deux fois
+        objVisibles.add(objSorted.get(0));
+        objSorted.remove(0);
+
+        for (Superposable b : objSorted) {
+            for (Superposable c : objVisibles) {
+
+                //Si il n'y a pas d'objet entre A et B et que ABC sont collinéaires
+                if (!isObjetEntreAB ) {
+                    if ( sontCollineraires(b.x, b.y, c.x, c.y) ) {
+                        //Alors on regarde si C est entre A et B et si il est traversable
+                        isObjetEntreAB = estEntreDeuxPoints(b.x, b.y, c.x, c.y) && !c.isTraversable();
+
+                    }
+                }
+            }
+            if (!isObjetEntreAB)
+                objVisibles.add(b);
+            isObjetEntreAB = false;
+        }
+
+        updateMasque(objVisibles);
+    }
+
+    private void updateMasque(List<Superposable> objVisibles){
+        resetMasque();
+        for(Superposable visible : objVisibles)
+            this.visionMasque[visible.x][visible.y] = true;
+    }
+
     public void tomber(Environnement environnement) {
         if (!est(Statut.PAR_TERRE) && Superposable.isCellulePleine(environnement, x, y))
             ajouterStatut(Statut.PAR_TERRE);
@@ -147,42 +212,77 @@ public class Humain extends Superposable implements Steppable {
         ajouterStatut(Statut.EN_ALERTE);
     }
 
-    @Override
-    public void step(SimState simState) {
-        Environnement environnement = (Environnement) simState;
-
-        if (pointsDeVie <= 0 || estSorti(environnement))
-            return;
-
-        if (est(Statut.PAR_TERRE)) {
-            seFairePietiner(environnement);
-            essayerDeSeRelever(environnement);
-        }
-
-        if (est(Statut.EN_FEU))
-            bruler();
-        else
-            potentiellementPrendreFeu(environnement);
-
-        if (est(Statut.EN_ALERTE))
-            essayerDeSortir(environnement);
-
-        if (estSorti(environnement))
-            environnement.sortir(this);
-
-        if (pointsDeVie <= 0)
-            environnement.tuer(this);
-    }
-
     public int getPointsDeVie() {
         return pointsDeVie;
     }
 
-    public int getX() {
-        return x;
+    /**
+     * Verifie que trois points A, B et C tel que A(Ax, Ay), B(Bx, By), C(Cx, Cy) sont collinéaires avec le point A obligatoirement assimilé à l'humain
+     * @param Bx les coordonnées x de B
+     * @param By les coordonnées y de B
+     * @param Cx les coordonnées x de C
+     * @param Cy les coordonnées y de C
+     * @return true c'est ils sont collineaires, false sinon
+     */
+    private boolean sontCollineraires(int Bx, int By, int Cx, int Cy){
+        //TODO : implementer Bresmann
+        Vector2D AC = new Vector2D(Cx-this.x, Cy-this.y);
+        Vector2D AB = new Vector2D(Cx-Bx, Cy-By);
+
+        double determinant = AC.x*AB.y - AB.x*AC.y;
+
+        return determinant >= -2 && determinant <= 2;
+        //return determinant == 0;
     }
 
-    public int getY() {
-        return y;
+    /**
+     * Verifie si le point C est situé sur le segment AB respectivement situé en (Cx, Cy), (Ax, Ay) et (Bx, By) avec A obligatoirement assimilé à l'humain
+     * @param Bx les coordonnées x de B
+     * @param By les coordonnées y de B
+     * @param Cx les coordonnées x de C
+     * @param Cy les coordonnées y de C
+     * @return true si C est entre A et B, false sinon.
+     */
+    private boolean estEntreDeuxPoints(int Bx, int By, int Cx, int Cy){
+
+        Vector2D CA = new Vector2D(this.x-Cx,this.y-Cy);
+        Vector2D CB = new Vector2D(Bx-Cx,By-Cy);
+        double produitScalaire = (CA.x*CB.x) + (CA.y*CB.y);
+
+        return produitScalaire <= 0;
+        //return produitScalaire <= 5;
+    }
+
+    private void resetMasque(){
+        Arrays.stream(this.visionMasque).forEach(ligne -> {
+            Arrays.fill(ligne, false);
+        });
+    }
+
+    /**
+     * Retourne si l'humain possède un statut particulier
+     * @param statut
+     * @return Retourne vrai si l'humain possède le statut en paramètre
+     */
+    public boolean est(Statut statut) {
+        return this.statuts.contains(statut);
+    }
+
+    public void ajouterStatut(Statut statut) {
+        if (!est(statut))
+            this.statuts.add(statut);
+    }
+
+    public void retirerStatut(Statut statut) {
+        if (est(statut))
+            this.statuts.remove(statut);
+    }
+
+    public Stoppable getStoppable() {
+        return stoppable;
+    }
+
+    public void setStoppable(Stoppable stoppable) {
+        this.stoppable = stoppable;
     }
 }

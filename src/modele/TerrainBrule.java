@@ -2,20 +2,11 @@ package modele;
 
 public class TerrainBrule extends Superposable {
 	
-	private int x, y;
-	
 	public TerrainBrule(int x, int y) {
+		super(x, y);
 		this.x = x;
 		this.y = y;
 		setTaille(0);
-	}
-	
-	public int getX() {
-		return x;
-	}
-	
-	public int getY() {
-		return y;
 	}
 	
 	public void setX(int x) {

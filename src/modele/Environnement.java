@@ -27,6 +27,8 @@ public class Environnement extends SimState {
 		ajouterAgentsHumain();
 		ajouterAgentsFeu();
 		ajouterAgentsMeuble();
+
+		this.getSortedObjectInList(new Humain(this, 4, 4));
 	}
 
 	private void ajouterAgentsMeuble() {
@@ -44,7 +46,7 @@ public class Environnement extends SimState {
 			Int2D location = recupererEmplacementVide();
 			Humain humain = new Humain(this, location.x, location.y);
 			grille.setObjectLocation(humain, location.x, location.y);
-			schedule.scheduleRepeating(humain);
+			humain.setStoppable(schedule.scheduleRepeating(humain));
 		}
 	}
 
@@ -93,7 +95,6 @@ public class Environnement extends SimState {
 			grille.setObjectLocation(new Mur(0, j), 0, j);
 			grille.setObjectLocation(new Mur(grille.getWidth() - 1, j), grille.getWidth() - 1, j);
 		}
-
 	}
 
 	public void ajoutFeu(int x, int y) {
@@ -139,6 +140,46 @@ public class Environnement extends SimState {
 		return nonTraversables;
 	}
 
+	private List<Superposable> getObjetsDeGrilleEnListe(){
+
+		List<Superposable> res = new ArrayList<>();
+		int sizeBag;
+
+		for(int i = 0; i < grille.getHeight(); i++){
+			for(int j = 0; j < grille.getWidth(); j++){
+
+				if(grille.getObjectsAtLocation(i, j) != null) {
+					sizeBag = grille.getObjectsAtLocation(i, j).numObjs;
+					for (int idx = 0; idx < sizeBag; idx++)
+						res.add((Superposable) grille.getObjectsAtLocation(i, j).objs[idx]);
+
+				} else {
+					res.add(new Superposable(i, j) {});
+				}
+			}
+		}
+		return res;
+	}
+
+	public List<Superposable> getSortedObjectInList(Humain h){
+
+		List<Superposable> toSortList = getObjetsDeGrilleEnListe();
+
+		toSortList.sort((s1, s2) -> {
+			if(calculateDistance(h.getX(), h.getY(), s1.getX(), s1.getY()) == calculateDistance(h.getX(), h.getY(), s2.getX(), s2.getY()))
+				return 0;
+
+			return calculateDistance(h.getX(), h.getY(), s1.getX(), s1.getY()) < calculateDistance(h.getX(), h.getY(), s2.getX(), s2.getY()) ? -1 : 1;
+		});
+
+		toSortList.remove(0);
+		return toSortList;
+	}
+
+	public static int calculateDistance( int x1, int y1, int x2, int y2) {
+		return (int) Math.sqrt((y2 - y1) * (y2 - y1) + (x2 - x1) * (x2 - x1));
+	}
+
 	private Int2D recupererEmplacementVide() {
 		Int2D location = new Int2D(random.nextInt(grille.getWidth()), random.nextInt(grille.getHeight()));
 		Object ag;
@@ -151,11 +192,13 @@ public class Environnement extends SimState {
 	public void tuer(Humain humain) {
 		grille.remove(humain);
 		grille.setObjectLocation(new Corps(humain.getX(), humain.getY()), humain.getX(), humain.getY());
+		humain.getStoppable().stop();
 		System.out.println("Humain a été tué");
 	}
 
 	public void sortir(Humain humain) {
 		grille.remove(humain);
+		humain.getStoppable().stop();
 		System.out.println("Humain est sorti");
 	}
 }

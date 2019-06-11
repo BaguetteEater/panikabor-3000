@@ -4,6 +4,14 @@ public abstract class Superposable {
 
 	private int taille = 0;
 
+	int x;
+	int y;
+
+	public Superposable(int x, int y){
+		this.x = x;
+		this.y = y;
+	}
+
 	public int getTaille() {
 		return taille;
 	}
@@ -16,7 +24,7 @@ public abstract class Superposable {
 	}
 
 	public boolean isTraversable() {
-		return taille <= Constantes.CAPACITE_MAX_CELLULE;
+		return taille < Constantes.CAPACITE_MAX_CELLULE;
 	}
 
 	public void setInfranchissable() {
@@ -37,5 +45,13 @@ public abstract class Superposable {
 
 	public static boolean isCellulePleine(Environnement environnement, int xCellule, int yCellule) {
 		return getTailleCellule(environnement, xCellule, yCellule) >= Constantes.CAPACITE_MAX_CELLULE;
+	}
+
+	public int getX() {
+		return x;
+	}
+
+	public int getY() {
+		return y;
 	}
 }

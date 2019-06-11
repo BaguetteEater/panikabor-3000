@@ -5,14 +5,12 @@ import sim.engine.Steppable;
 import sim.engine.Stoppable;
 
 public class Feu extends Superposable implements Steppable {
-	
-	private int x, y;
+
 	private int dureeDeVie;
 	private Stoppable stoppable;
 	
 	public Feu(int x, int y) {
-		this.x = x;
-		this.y = y;
+		super(x, y);
 		this.dureeDeVie = Constantes.DUREE_DE_VIE_FEU;
 		setTaille(0);
 	}
@@ -129,5 +127,4 @@ public class Feu extends Superposable implements Steppable {
     public Stoppable getStoppable() {
         return stoppable;
     }
-    
 }
