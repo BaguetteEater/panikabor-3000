@@ -59,8 +59,6 @@ public class Humain extends Superposable implements Steppable {
 
         if (pointsDeVie <= 0)
             environnement.tuer(this);
-
-        percevoir(environnement);
     }
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
@@ -226,13 +224,15 @@ public class Humain extends Superposable implements Steppable {
      */
     private boolean sontCollineraires(int Bx, int By, int Cx, int Cy){
         //TODO : implementer Bresmann
-        Vector2D AC = new Vector2D(Cx-this.x, Cy-this.y);
-        Vector2D AB = new Vector2D(Cx-Bx, Cy-By);
 
-        double determinant = AC.x*AB.y - AB.x*AC.y;
+        int ACx = Cx-this.x;
+        int ACy = Cy-this.y;
+        int ABx = Cx-Bx;
+        int ABy = Cy-By;
+
+        double determinant = ACx*ABy - ABx*ABy;
 
         return determinant >= -2 && determinant <= 2;
-        //return determinant == 0;
     }
 
     /**
@@ -245,9 +245,12 @@ public class Humain extends Superposable implements Steppable {
      */
     private boolean estEntreDeuxPoints(int Bx, int By, int Cx, int Cy){
 
-        Vector2D CA = new Vector2D(this.x-Cx,this.y-Cy);
-        Vector2D CB = new Vector2D(Bx-Cx,By-Cy);
-        double produitScalaire = (CA.x*CB.x) + (CA.y*CB.y);
+        int CAx = this.x-Cx;
+        int CAy = this.y-Cy;
+        int CBx = Bx-Cx;
+        int CBy = By-Cy;
+
+        double produitScalaire = (CAx*CBx) + (CAy*CBy);
 
         return produitScalaire <= 0;
         //return produitScalaire <= 5;
