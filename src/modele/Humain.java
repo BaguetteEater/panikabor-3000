@@ -1,6 +1,14 @@
 package modele;
 
+import jade.core.AID;
+import jade.core.Agent;
+import jade.domain.DFService;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAException;
 import javafx.util.Pair;
+import modele.jade.HumainAgent;
+import modele.jade.HumanAgentI;
 import modele.pathfinding.AStar;
 import modele.pathfinding.Node;
 import sim.app.woims.Vector2D;
@@ -13,14 +21,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Humain extends Superposable implements Steppable {
+public class Humain extends Superposable implements Steppable, HumanAgentI {
 
     private boolean[][] visionMasque;
     private int pointsDeVie = Constantes.VIE_MAX;
     private List<Statut> statuts;
     private Stoppable stoppable;
+    private HumainAgent agent;
 
-    public Humain(Environnement environnement, int x, int y) {
+    public Humain(Environnement environnement, int x, int y, HumainAgent agent) {
         super(x, y);
 
         visionMasque = new boolean[gui.Constantes.TAILLE_GRILLE][gui.Constantes.TAILLE_GRILLE];
@@ -29,7 +38,36 @@ public class Humain extends Superposable implements Steppable {
         this.statuts = new ArrayList<>();
         setTaille(1);
 
-        ajouterStatut(Statut.EN_ALERTE); // todo: remplacer par la propagation des alertes
+        this.agent = agent;
+        if (estEnAlerte())
+            ajouterStatut(Statut.EN_ALERTE);
+    }
+
+    private HumainAgent chercherAgentJade() {
+        DFAgentDescription dfAgentDescription = new DFAgentDescription();
+
+        ServiceDescription serviceDescription = new ServiceDescription();
+        serviceDescription.setType("HumainAgents");
+        serviceDescription.setName("HumainAgent[" + x + ";" + y + "]");
+        dfAgentDescription.addServices(serviceDescription);
+
+        DFAgentDescription[] results = new DFAgentDescription[0];
+        /*try {
+            results = DFService.search(agent, dfAgentDescription);
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }*/
+
+        if (results.length > 0) {
+            int random = (int) (Math.random() * results.length);
+            results[random].getName();
+        }
+
+        for (int i = 0; i < results.length; i++) {
+            System.out.println(results[i]);
+        }
+
+        return new HumainAgent();
     }
 
     @Override
@@ -287,5 +325,10 @@ public class Humain extends Superposable implements Steppable {
 
     public void setStoppable(Stoppable stoppable) {
         this.stoppable = stoppable;
+    }
+
+    @Override
+    public boolean estEnAlerte() {
+        return this.agent.estEnAlerte();
     }
 }

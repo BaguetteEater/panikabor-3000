@@ -2,11 +2,14 @@ package main;
 
 import gui.SimulationAvecUI;
 import modele.Environnement;
+import modele.jade.MainContainer;
 import sim.display.Console;
 
 public class Main {
 
     public static void main(String[] args) {
+		new MainContainer("modele/jade/main.properties");
+		//new EnvironnementContainer("modele/jade/environnement.properties");
 		runUI();
 	}
 
