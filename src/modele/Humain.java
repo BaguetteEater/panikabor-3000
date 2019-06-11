@@ -6,6 +6,7 @@ import modele.pathfinding.Node;
 import sim.app.woims.Vector2D;
 import sim.engine.SimState;
 import sim.engine.Steppable;
+import sim.engine.Stoppable;
 import sim.field.grid.SparseGrid2D;
 
 import java.util.ArrayList;
@@ -14,15 +15,18 @@ import java.util.List;
 
 public class Humain extends Superposable implements Steppable {
 
-    private SparseGrid2D vision;
+    private boolean[][] visionMasque;
     private int pointsDeVie = Constantes.VIE_MAX;
     private List<Statut> statuts;
+    private Stoppable stoppable;
 
     public Humain(Environnement environnement, int x, int y) {
         super(x, y);
-        vision = new SparseGrid2D(gui.Constantes.TAILLE_GRILLE, gui.Constantes.TAILLE_GRILLE);
+
+        visionMasque = new boolean[gui.Constantes.TAILLE_GRILLE][gui.Constantes.TAILLE_GRILLE];
+        resetMasque();
+
         this.statuts = new ArrayList<>();
-        //percevoir(environnement);
         setTaille(1);
 
         ajouterStatut(Statut.EN_ALERTE); // todo: remplacer par la propagation des alertes
@@ -45,6 +49,8 @@ public class Humain extends Superposable implements Steppable {
         else
             potentiellementPrendreFeu(environnement);
 
+        percevoir(environnement);
+
         if (est(Statut.EN_ALERTE))
             essayerDeSortir(environnement);
 
@@ -53,6 +59,8 @@ public class Humain extends Superposable implements Steppable {
 
         if (pointsDeVie <= 0)
             environnement.tuer(this);
+
+        percevoir(environnement);
     }
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
@@ -140,30 +148,34 @@ public class Humain extends Superposable implements Steppable {
         List<Superposable> objVisibles = new ArrayList<>();
         boolean isObjetEntreAB = false;
 
-        //Le premier est toujours visible vu que c'est l'objet le plus proche de l'humain
+        //Le premier est toujours visible vu que c'est l'objet le plus proche de l'humain et on le retire pour eviter de l'ajouter deux fois
         objVisibles.add(objSorted.get(0));
+        objSorted.remove(0);
 
         for (Superposable b : objSorted) {
             for (Superposable c : objVisibles) {
 
                 //Si il n'y a pas d'objet entre A et B et que ABC sont collinéaires
-                if (!isObjetEntreAB && sontCollineraires(b.x, b.y, c.x, c.y)) {
-                    System.out.println(c);
-                    System.out.println("c traversable  : " + c.isTraversable());
-                    //Alors on regarde si C est entre A et B et si il est traversable
-                    isObjetEntreAB = estEntreDeuxPoints(b.x, b.y, c.x, c.y) && !c.isTraversable();
+                if (!isObjetEntreAB ) {
+                    if ( sontCollineraires(b.x, b.y, c.x, c.y) ) {
+                        //Alors on regarde si C est entre A et B et si il est traversable
+                        isObjetEntreAB = estEntreDeuxPoints(b.x, b.y, c.x, c.y) && !c.isTraversable();
+
+                    }
                 }
             }
-
             if (!isObjetEntreAB)
                 objVisibles.add(b);
+            isObjetEntreAB = false;
         }
 
-        System.out.println("obj visible : " + objVisibles);
+        updateMasque(objVisibles);
+    }
 
-        objVisibles.forEach(obj -> {
-            e.ajoutFeu(obj.x, obj.y);
-        });
+    private void updateMasque(List<Superposable> objVisibles){
+        resetMasque();
+        for(Superposable visible : objVisibles)
+            this.visionMasque[visible.x][visible.y] = true;
     }
 
     public void tomber(Environnement environnement) {
@@ -213,12 +225,14 @@ public class Humain extends Superposable implements Steppable {
      * @return true c'est ils sont collineaires, false sinon
      */
     private boolean sontCollineraires(int Bx, int By, int Cx, int Cy){
+        //TODO : implementer Bresmann
         Vector2D AC = new Vector2D(Cx-this.x, Cy-this.y);
         Vector2D AB = new Vector2D(Cx-Bx, Cy-By);
 
         double determinant = AC.x*AB.y - AB.x*AC.y;
 
-        return determinant == 0;
+        return determinant >= -2 && determinant <= 2;
+        //return determinant == 0;
     }
 
     /**
@@ -236,6 +250,13 @@ public class Humain extends Superposable implements Steppable {
         double produitScalaire = (CA.x*CB.x) + (CA.y*CB.y);
 
         return produitScalaire <= 0;
+        //return produitScalaire <= 5;
+    }
+
+    private void resetMasque(){
+        Arrays.stream(this.visionMasque).forEach(ligne -> {
+            Arrays.fill(ligne, false);
+        });
     }
 
     /**
@@ -255,5 +276,13 @@ public class Humain extends Superposable implements Steppable {
     public void retirerStatut(Statut statut) {
         if (est(statut))
             this.statuts.remove(statut);
+    }
+
+    public Stoppable getStoppable() {
+        return stoppable;
+    }
+
+    public void setStoppable(Stoppable stoppable) {
+        this.stoppable = stoppable;
     }
 }

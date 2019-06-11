@@ -46,7 +46,7 @@ public class Environnement extends SimState {
 			Int2D location = recupererEmplacementVide();
 			Humain humain = new Humain(this, location.x, location.y);
 			grille.setObjectLocation(humain, location.x, location.y);
-			schedule.scheduleRepeating(humain);
+			humain.setStoppable(schedule.scheduleRepeating(humain));
 		}
 	}
 
@@ -95,11 +95,6 @@ public class Environnement extends SimState {
 			grille.setObjectLocation(new Mur(0, j), 0, j);
 			grille.setObjectLocation(new Mur(grille.getWidth() - 1, j), grille.getWidth() - 1, j);
 		}
-		////
-		grille.setObjectLocation(new Mur(5, 4), 5, 4);
-		grille.setObjectLocation(new Mur(5, 5), 5, 5);
-		grille.setObjectLocation(new Mur(5, 6), 5, 6);
-		/////
 	}
 
 	public void ajoutFeu(int x, int y) {
@@ -155,7 +150,6 @@ public class Environnement extends SimState {
 
 				if(grille.getObjectsAtLocation(i, j) != null) {
 					sizeBag = grille.getObjectsAtLocation(i, j).numObjs;
-
 					for (int idx = 0; idx < sizeBag; idx++)
 						res.add((Superposable) grille.getObjectsAtLocation(i, j).objs[idx]);
 
@@ -164,7 +158,6 @@ public class Environnement extends SimState {
 				}
 			}
 		}
-
 		return res;
 	}
 
@@ -173,16 +166,13 @@ public class Environnement extends SimState {
 		List<Superposable> toSortList = getObjetsDeGrilleEnListe();
 
 		toSortList.sort((s1, s2) -> {
-
 			if(calculateDistance(h.getX(), h.getY(), s1.getX(), s1.getY()) == calculateDistance(h.getX(), h.getY(), s2.getX(), s2.getY()))
 				return 0;
 
 			return calculateDistance(h.getX(), h.getY(), s1.getX(), s1.getY()) < calculateDistance(h.getX(), h.getY(), s2.getX(), s2.getY()) ? -1 : 1;
-
 		});
 
 		toSortList.remove(0);
-
 		return toSortList;
 	}
 
@@ -202,11 +192,13 @@ public class Environnement extends SimState {
 	public void tuer(Humain humain) {
 		grille.remove(humain);
 		grille.setObjectLocation(new Corps(humain.getX(), humain.getY()), humain.getX(), humain.getY());
+		humain.getStoppable().stop();
 		System.out.println("Humain a été tué");
 	}
 
 	public void sortir(Humain humain) {
 		grille.remove(humain);
+		humain.getStoppable().stop();
 		System.out.println("Humain est sorti");
 	}
 }
