@@ -6,12 +6,14 @@ import sim.field.grid.SparseGrid2D;
 import sim.util.Int2D;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Environnement extends SimState {
 
 	public int coordonneeSortieX, coordonneeSortieY;
 	public SparseGrid2D grille = new SparseGrid2D(gui.Constantes.TAILLE_GRILLE, gui.Constantes.TAILLE_GRILLE);
+	private SuperposableVideFactory factory = new SuperposableVideFactory();
 
 	public Environnement(long seed) {
 		super(seed);
@@ -22,13 +24,12 @@ public class Environnement extends SimState {
 		System.out.println("Simulation intialisee");
 		super.start();
 		grille.clear();
+
 		ajouterContour();
 		ajouterAgentsSortie();
 		ajouterAgentsHumain();
 		ajouterAgentsFeu();
 		ajouterAgentsMeuble();
-
-		this.getSortedObjectInList(new Humain(this, 4, 4));
 	}
 
 	private void ajouterAgentsMeuble() {
@@ -142,19 +143,20 @@ public class Environnement extends SimState {
 
 	private List<Superposable> getObjetsDeGrilleEnListe(){
 
-		List<Superposable> res = new ArrayList<>();
+		List<Superposable> res = new ArrayList<>(gui.Constantes.TAILLE_GRILLE*gui.Constantes.TAILLE_GRILLE*3);
 		int sizeBag;
 
 		for(int i = 0; i < grille.getHeight(); i++){
 			for(int j = 0; j < grille.getWidth(); j++){
 
 				if(grille.getObjectsAtLocation(i, j) != null) {
+
 					sizeBag = grille.getObjectsAtLocation(i, j).numObjs;
 					for (int idx = 0; idx < sizeBag; idx++)
 						res.add((Superposable) grille.getObjectsAtLocation(i, j).objs[idx]);
 
 				} else {
-					res.add(new Superposable(i, j) {});
+					res.add(this.factory.getVideSuperposable(i, j));
 				}
 			}
 		}
