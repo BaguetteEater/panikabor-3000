@@ -103,8 +103,10 @@ public class SimulationAvecUI extends GUIState {
                 if (object instanceof Sortie)
                     if (((Sortie) object).getX() == 0 || ((Sortie) object).getX() == Constantes.TAILLE_GRILLE - 1)
                         image = new ImageIcon("img/sortie-horizontale.png").getImage();
+                    else
+						image = new ImageIcon("img/sortie.png").getImage();
 
-                super.draw(object, graphics, info);
+				super.draw(object, graphics, info);
             }
         };
     }
