@@ -43,10 +43,8 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         if (pointsDeVie <= 0 || sortieLaPlusProche == null || estSorti(environnement, sortieLaPlusProche))
             return;
 
-        if (!est(Statut.EN_ALERTE) && alerteRecue()) {
+        if (!est(Statut.EN_ALERTE) && alerteRecue())
             ajouterStatut(Statut.EN_ALERTE);
-            System.out.println(agent.getName() + " -> " + "EN ALERTE (à cause du Behaviour)");
-        }
 
         if (est(Statut.PAR_TERRE)) {
             seFairePietiner(environnement);
@@ -81,7 +79,6 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
 
                 if (visionMasque[i][j] && bag != null && Arrays.stream(bag.objs).anyMatch(s -> s instanceof Feu)) {
                     ajouterStatut(Statut.EN_ALERTE);
-                    System.out.println(agent.getName() + " -> " + "EN ALERTE (à cause du feu)");
                     return;
                 }
             }
