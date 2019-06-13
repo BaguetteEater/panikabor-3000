@@ -1,3 +1,9 @@
 .idea
 *.iml
 out/
+
+.DS_Store
+
+# Jade
+APDescription.txt
+MTPs-Main-Container.txt

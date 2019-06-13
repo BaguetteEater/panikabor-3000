@@ -2,7 +2,7 @@ package modele;
 
 public class Constantes {
 
-    public final static int NOMBRE_HUMAINS = 100;
+    public final static int NOMBRE_HUMAINS = 50;
     public final static int NOMBRE_FOYERS = 1;
     public final static int NOMBRE_MURS = 1;
     public static final int NOMBRE_MEUBLES = 100;

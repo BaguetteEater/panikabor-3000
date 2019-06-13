@@ -1,13 +1,15 @@
 package modele;
 
 import javafx.util.Pair;
+import modele.jade.HumainAgent;
+import modele.jade.EnvironnementContainer;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
 import sim.util.Int2D;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 public class Environnement extends SimState {
 
@@ -15,12 +17,17 @@ public class Environnement extends SimState {
 	public SparseGrid2D grille = new SparseGrid2D(gui.Constantes.TAILLE_GRILLE, gui.Constantes.TAILLE_GRILLE);
 	private SuperposableVideFactory factory = new SuperposableVideFactory();
 
+	private EnvironnementContainer jadeEnvironnementContainer;
+
 	public Environnement(long seed) {
 		super(seed);
 	}
 
 	@Override
 	public void start() {
+		System.out.println("Initialisation de Jade");
+		jadeEnvironnementContainer = new EnvironnementContainer("modele/jade/environnement.properties");
+
 		System.out.println("Simulation intialisee");
 		super.start();
 		grille.clear();
@@ -41,11 +48,16 @@ public class Environnement extends SimState {
 	}
 
 	private void ajouterAgentsHumain() {
-		// TODO : modifier les valeurs de x et y en fonction du placement initial des
-		// humains
 		for (int i = 0; i < Constantes.NOMBRE_HUMAINS; i++) {
+			// Création de l'HumainAgent
+			HumainAgent agent = new HumainAgent();
+			String agentName = "HumainAgent#" + UUID.randomUUID();
+			jadeEnvironnementContainer.addAndStartAgent(agentName, agent);
+
+			// Création de l'Humain et placement sur la grille
 			Int2D location = recupererEmplacementVide();
-			Humain humain = new Humain(this, location.x, location.y);
+			Humain humain = new Humain(location.x, location.y, agent);
+
 			grille.setObjectLocation(humain, location.x, location.y);
 			humain.setStoppable(schedule.scheduleRepeating(humain));
 		}
@@ -202,5 +214,10 @@ public class Environnement extends SimState {
 		grille.remove(humain);
 		humain.getStoppable().stop();
 		System.out.println("Humain est sorti");
+	}
+
+	@Override
+	public void finish() {
+		jadeEnvironnementContainer.kill();
 	}
 }

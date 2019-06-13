@@ -1,26 +1,28 @@
 package modele;
 
 import javafx.util.Pair;
+import modele.jade.HumainAgent;
+import modele.jade.HumanAgentI;
 import modele.pathfinding.AStar;
 import modele.pathfinding.Node;
-import sim.app.woims.Vector2D;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.engine.Stoppable;
-import sim.field.grid.SparseGrid2D;
+import sim.util.Bag;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Humain extends Superposable implements Steppable {
+public class Humain extends Superposable implements Steppable, HumanAgentI {
 
     private boolean[][] visionMasque;
     private int pointsDeVie = Constantes.VIE_MAX;
     private List<Statut> statuts;
     private Stoppable stoppable;
+    private HumainAgent agent;
 
-    public Humain(Environnement environnement, int x, int y) {
+    public Humain(int x, int y, HumainAgent agent) {
         super(x, y);
 
         visionMasque = new boolean[gui.Constantes.TAILLE_GRILLE][gui.Constantes.TAILLE_GRILLE];
@@ -29,7 +31,7 @@ public class Humain extends Superposable implements Steppable {
         this.statuts = new ArrayList<>();
         setTaille(1);
 
-        ajouterStatut(Statut.EN_ALERTE); // todo: remplacer par la propagation des alertes
+        this.agent = agent;
     }
 
     @Override
@@ -38,6 +40,11 @@ public class Humain extends Superposable implements Steppable {
 
         if (pointsDeVie <= 0 || estSorti(environnement))
             return;
+
+        if (!est(Statut.EN_ALERTE) && alerteRecue()) {
+            ajouterStatut(Statut.EN_ALERTE);
+            System.out.println(agent.getName() + " -> " + "EN ALERTE (à cause du Behaviour)");
+        }
 
         if (est(Statut.PAR_TERRE)) {
             seFairePietiner(environnement);
@@ -51,14 +58,52 @@ public class Humain extends Superposable implements Steppable {
 
         percevoir(environnement);
 
-        if (est(Statut.EN_ALERTE))
+        if (est(Statut.EN_ALERTE)) {
+            alerterHumains(environnement);
             essayerDeSortir(environnement);
+        } else {
+            sAlerter(environnement);
+        }
 
         if (estSorti(environnement))
             environnement.sortir(this);
 
         if (pointsDeVie <= 0)
             environnement.tuer(this);
+    }
+
+    private void sAlerter(Environnement environnement) {
+        for (int i = 0; i < gui.Constantes.TAILLE_GRILLE; i++) {
+            for (int j = 0; j < gui.Constantes.TAILLE_GRILLE; j++) {
+                Bag bag = environnement.grille.getObjectsAtLocation(i, j);
+
+                if (visionMasque[i][j] && bag != null && Arrays.stream(bag.objs).anyMatch(s -> s instanceof Feu)) {
+                    ajouterStatut(Statut.EN_ALERTE);
+                    System.out.println(agent.getName() + " -> " + "EN ALERTE (à cause du feu)");
+                    return;
+                }
+            }
+        }
+    }
+
+    private void alerterHumains(Environnement environnement) {
+        for (int i = 0; i < gui.Constantes.TAILLE_GRILLE; i++) {
+            for (int j = 0; j < gui.Constantes.TAILLE_GRILLE; j++) {
+                Bag bag = environnement.grille.getObjectsAtLocation(i, j);
+
+                if (visionMasque[i][j] && bag != null) {
+                    Arrays.stream(bag.objs).forEach(s -> {
+                        if (s instanceof Humain && !((Humain) s).est(Statut.EN_ALERTE))
+                            alerter(((Humain) s).getAgent().getName());
+                    });
+                }
+            }
+        }
+    }
+
+    @Override
+    public void alerter(String humainAgentName) {
+        this.agent.alerter(humainAgentName);
     }
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
@@ -205,11 +250,6 @@ public class Humain extends Superposable implements Steppable {
         pointsDeVie -= Constantes.DOULEUR_BRULURE;
     }
 
-    public void sAlerter(Environnement environnement) {
-        // TODO: vérifier dans la perception si un Humain est EN_ALERTE
-        ajouterStatut(Statut.EN_ALERTE);
-    }
-
     public int getPointsDeVie() {
         return pointsDeVie;
     }
@@ -287,5 +327,14 @@ public class Humain extends Superposable implements Steppable {
 
     public void setStoppable(Stoppable stoppable) {
         this.stoppable = stoppable;
+    }
+
+    @Override
+    public boolean alerteRecue() {
+        return this.agent.alerteRecue();
+    }
+
+    public HumainAgent getAgent() {
+        return agent;
     }
 }

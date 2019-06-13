@@ -66,19 +66,20 @@ public class SimulationAvecUI extends GUIState {
 
                     if (((Humain) object).est(Statut.EN_ALERTE)) {
                         if (((Humain) object).est(Statut.EN_FEU))
-                            image = new ImageIcon("img/en_alerte_en_feu.png").getImage();
-                        else
-                            image = new ImageIcon("img/en_alerte.png").getImage();
-                    }
+							image = new ImageIcon("img/en_alerte_en_feu.png").getImage();
+						else
+							image = new ImageIcon("img/en_alerte.png").getImage();
 
-                    if (((Humain) object).est(Statut.PAR_TERRE)) {
+                    } else if (((Humain) object).est(Statut.PAR_TERRE)) {
                         if (((Humain) object).est(Statut.EN_FEU))
                             image = new ImageIcon("img/par_terre_en_feu.png").getImage();
                         else
                             image = new ImageIcon("img/par_terre.png").getImage();
-                    }
-                }
 
+                    } else {
+						image = new ImageIcon("img/happy.png").getImage();
+					}
+                }
 
                 super.draw(object, graphics, info);
             }
