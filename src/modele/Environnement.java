@@ -56,7 +56,8 @@ public class Environnement extends SimState {
 
 			// Création de l'Humain et placement sur la grille
 			Int2D location = recupererEmplacementVide();
-			Humain humain = new Humain(this, location.x, location.y, agent);
+			Humain humain = new Humain(location.x, location.y, agent);
+
 			grille.setObjectLocation(humain, location.x, location.y);
 			humain.setStoppable(schedule.scheduleRepeating(humain));
 		}

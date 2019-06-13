@@ -1,25 +1,18 @@
 package modele;
 
-import jade.core.AID;
-import jade.core.Agent;
-import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAException;
 import javafx.util.Pair;
 import modele.jade.HumainAgent;
 import modele.jade.HumanAgentI;
 import modele.pathfinding.AStar;
 import modele.pathfinding.Node;
-import sim.app.woims.Vector2D;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.engine.Stoppable;
-import sim.field.grid.SparseGrid2D;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Humain extends Superposable implements Steppable, HumanAgentI {
 
@@ -29,7 +22,10 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
     private Stoppable stoppable;
     private HumainAgent agent;
 
-    public Humain(Environnement environnement, int x, int y, HumainAgent agent) {
+    List<Superposable> feuxAProximite;
+    List<Superposable> humainsAProximite;
+
+    public Humain(int x, int y, HumainAgent agent) {
         super(x, y);
 
         visionMasque = new boolean[gui.Constantes.TAILLE_GRILLE][gui.Constantes.TAILLE_GRILLE];
@@ -39,35 +35,6 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         setTaille(1);
 
         this.agent = agent;
-        if (estEnAlerte())
-            ajouterStatut(Statut.EN_ALERTE);
-    }
-
-    private HumainAgent chercherAgentJade() {
-        DFAgentDescription dfAgentDescription = new DFAgentDescription();
-
-        ServiceDescription serviceDescription = new ServiceDescription();
-        serviceDescription.setType("HumainAgents");
-        serviceDescription.setName("HumainAgent[" + x + ";" + y + "]");
-        dfAgentDescription.addServices(serviceDescription);
-
-        DFAgentDescription[] results = new DFAgentDescription[0];
-        /*try {
-            results = DFService.search(agent, dfAgentDescription);
-        } catch (FIPAException e) {
-            e.printStackTrace();
-        }*/
-
-        if (results.length > 0) {
-            int random = (int) (Math.random() * results.length);
-            results[random].getName();
-        }
-
-        for (int i = 0; i < results.length; i++) {
-            System.out.println(results[i]);
-        }
-
-        return new HumainAgent();
     }
 
     @Override
@@ -76,6 +43,11 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
 
         if (pointsDeVie <= 0 || estSorti(environnement))
             return;
+
+        if (!est(Statut.EN_ALERTE) && alerteRecue()) {
+            ajouterStatut(Statut.EN_ALERTE);
+            System.out.println(agent.getName() + " -> " + "EN ALERTE (à cause du Behaviour)");
+        }
 
         if (est(Statut.PAR_TERRE)) {
             seFairePietiner(environnement);
@@ -89,14 +61,37 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
 
         percevoir(environnement);
 
-        if (est(Statut.EN_ALERTE))
+        if (est(Statut.EN_ALERTE)) {
+            alerterHumains();
             essayerDeSortir(environnement);
+        } else {
+            sAlerter();
+        }
 
         if (estSorti(environnement))
             environnement.sortir(this);
 
         if (pointsDeVie <= 0)
             environnement.tuer(this);
+    }
+
+    private void sAlerter() {
+        if (feuxAProximite.stream().anyMatch(superposable -> superposable instanceof Feu)) {
+            ajouterStatut(Statut.EN_ALERTE);
+            System.out.println(agent.getName() + " -> " + "EN ALERTE (à cause du feu)");
+        }
+    }
+
+    private void alerterHumains() {
+        humainsAProximite.forEach(superposable -> {
+            if (superposable instanceof Humain && !((Humain) superposable).est(Statut.EN_ALERTE))
+                alerter(((Humain) superposable).getAgent().getName());
+        });
+    }
+
+    @Override
+    public void alerter(String humainAgentName) {
+        this.agent.alerter(humainAgentName);
     }
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
@@ -184,6 +179,9 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         List<Superposable> objVisibles = new ArrayList<>();
         boolean isObjetEntreAB = false;
 
+        feuxAProximite = objSorted.subList(0, 25).stream().filter(superposable -> superposable instanceof Feu).collect(Collectors.toCollection(ArrayList::new));
+        humainsAProximite = objSorted.subList(0, 200).stream().filter(superposable -> superposable instanceof Humain).collect(Collectors.toCollection(ArrayList::new));
+
         //Le premier est toujours visible vu que c'est l'objet le plus proche de l'humain et on le retire pour eviter de l'ajouter deux fois
         objVisibles.add(objSorted.get(0));
         objSorted.remove(0);
@@ -241,11 +239,6 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
 
     private void bruler() {
         pointsDeVie -= Constantes.DOULEUR_BRULURE;
-    }
-
-    public void sAlerter(Environnement environnement) {
-        // TODO: vérifier dans la perception si un Humain est EN_ALERTE
-        ajouterStatut(Statut.EN_ALERTE);
     }
 
     public int getPointsDeVie() {
@@ -328,7 +321,11 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
     }
 
     @Override
-    public boolean estEnAlerte() {
-        return this.agent.estEnAlerte();
+    public boolean alerteRecue() {
+        return this.agent.alerteRecue();
+    }
+
+    public HumainAgent getAgent() {
+        return agent;
     }
 }

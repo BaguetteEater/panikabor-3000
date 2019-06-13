@@ -2,6 +2,8 @@ package modele.jade;
 
 public interface HumanAgentI {
 
-    public boolean estEnAlerte();
+    public boolean alerteRecue();
+
+    public void alerter(String humainAgentName);
 
 }
