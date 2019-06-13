@@ -38,7 +38,9 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
     public void step(SimState simState) {
         Environnement environnement = (Environnement) simState;
 
-        if (pointsDeVie <= 0 || estSorti(environnement))
+        Sortie sortieLaPlusProche = environnement.getSortieLaPlusProche(x, y);
+
+        if (pointsDeVie <= 0 || sortieLaPlusProche == null || estSorti(environnement, sortieLaPlusProche))
             return;
 
         if (!est(Statut.EN_ALERTE) && alerteRecue()) {
@@ -60,12 +62,12 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
 
         if (est(Statut.EN_ALERTE)) {
             alerterHumains(environnement);
-            essayerDeSortir(environnement);
+            essayerDeSortir(environnement, sortieLaPlusProche);
         } else {
             sAlerter(environnement);
         }
 
-        if (estSorti(environnement))
+        if (estSorti(environnement, sortieLaPlusProche))
             environnement.sortir(this);
 
         if (pointsDeVie <= 0)
@@ -135,13 +137,13 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
      * @param environnement L'ensemble de l'environnement dans lequel se deplace l'humain, contenant l'emplacement des murs et de la sortie
      * @return true si il a reussi a se deplacer, false sinon
      */
-    private boolean essayerDeSortir(Environnement environnement) {
+    private boolean essayerDeSortir(Environnement environnement, Sortie sortie) {
         AStar cerveau = new AStar(
                 environnement.grille.getHeight(),
                 environnement.grille.getWidth(),
                 this,
-                environnement.getSortie().getKey(),
-                environnement.getSortie().getValue());
+                sortie.getX(),
+                sortie.getY());
 
         List<Pair<Integer, Integer>> nonTraversables = environnement.getNonTraversables();
         List<Node> path;
@@ -172,8 +174,8 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
      * @param environnement L'environnement dans lequel se deplace l'humain, contenant la sortie.
      * @return Vrai si l'homme est sur la case de la sortie, false sinon
      */
-    public boolean estSorti(Environnement environnement){
-        return environnement.getSortie().getKey() == this.x && environnement.getSortie().getValue() == this.getY();
+    public boolean estSorti(Environnement environnement, Sortie sortie){
+        return sortie.getX() == this.x && sortie.getY() == this.getY();
     }
 
     /**
@@ -240,6 +242,9 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
     }
 
     private void potentiellementPrendreFeu(Environnement environnement) {
+        if (environnement.grille.getObjectsAtLocationOfObject(this) == null)
+            return ;
+
         long nombreDeFeux = Arrays.stream(environnement.grille.getObjectsAtLocationOfObject(this).objs).filter(obj -> obj instanceof Feu).count();
         if (nombreDeFeux >= 1) {
             ajouterStatut(Statut.EN_FEU);

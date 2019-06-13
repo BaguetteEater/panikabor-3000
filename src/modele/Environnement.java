@@ -7,13 +7,10 @@ import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
 import sim.util.Int2D;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class Environnement extends SimState {
 
-	public int coordonneeSortieX, coordonneeSortieY;
 	public SparseGrid2D grille = new SparseGrid2D(gui.Constantes.TAILLE_GRILLE, gui.Constantes.TAILLE_GRILLE);
 	private SuperposableVideFactory factory = new SuperposableVideFactory();
 
@@ -29,14 +26,15 @@ public class Environnement extends SimState {
 		jadeEnvironnementContainer = new EnvironnementContainer("modele/jade/environnement.properties");
 
 		System.out.println("Simulation intialisee");
-		super.start();
 		grille.clear();
+		super.start();
 
 		ajouterContour();
 		ajouterAgentsSortie();
 		ajouterAgentsHumain();
 		ajouterAgentsFeu();
 		ajouterAgentsMeuble();
+
 	}
 
 	private void ajouterAgentsMeuble() {
@@ -74,29 +72,31 @@ public class Environnement extends SimState {
 	}
 
 	private void ajouterAgentsSortie() {
-		int quel_cote = (int) (Math.random() * 4);
-		int coordonneeSortieX = 0, coordonneeSortieY = 0;
-		switch (quel_cote) {
-		case 0:
-			coordonneeSortieX = 0;
-			coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
-			break;
-		case 1:
-			coordonneeSortieX = grille.getWidth() - 1;
-			coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
-			break;
-		case 2:
-			coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
-			coordonneeSortieY = 0;
-			break;
-		case 3:
-			coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
-			coordonneeSortieY = grille.getHeight() - 1;
-			break;
+		for (int i = 0; i < Constantes.NOMBRE_SORTIES; i++) {
+			int quel_cote = (int) (Math.random() * 4);
+			int coordonneeSortieX = 0, coordonneeSortieY = 0;
+			switch (quel_cote) {
+				case 0:
+					coordonneeSortieX = 0;
+					coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
+					break;
+				case 1:
+					coordonneeSortieX = grille.getWidth() - 1;
+					coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
+					break;
+				case 2:
+					coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
+					coordonneeSortieY = 0;
+					break;
+				case 3:
+					coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
+					coordonneeSortieY = grille.getHeight() - 1;
+					break;
+			}
+			grille.removeObjectsAtLocation(coordonneeSortieX, coordonneeSortieY);
+			Sortie sortie = new Sortie(1, coordonneeSortieX, coordonneeSortieY);
+			grille.setObjectLocation(sortie, coordonneeSortieX, coordonneeSortieY);
 		}
-		grille.removeObjectsAtLocation(coordonneeSortieX, coordonneeSortieY);
-		Sortie sortie = new Sortie(1, coordonneeSortieX, coordonneeSortieY);
-		grille.setObjectLocation(sortie, coordonneeSortieX, coordonneeSortieY);
 	}
 
 	private void ajouterContour() {
@@ -123,19 +123,23 @@ public class Environnement extends SimState {
 		grille.remove(feu);
 	}
 
-	public Pair<Integer, Integer> getSortie() {
+	public Sortie getSortieLaPlusProche(int x, int y) {
 
-		for (int i = 0; i < grille.getHeight(); i++) {
-			for (int j = 0; j < grille.getWidth(); j++) {
+		Map<Sortie, Integer> sortiesParDistance = new HashMap<>(Constantes.NOMBRE_SORTIES);
+
+		for (int i = 0; i < grille.getHeight(); i++)
+			for (int j = 0; j < grille.getWidth(); j++)
 				if (grille.getObjectsAtLocation(i, j) != null) {
-					for (Object o : grille.getObjectsAtLocation(i, j).objs) {
-						if (o instanceof Sortie)
-							return new Pair<>(i, j);
-					}
+					Arrays.stream(grille.getObjectsAtLocation(i, j).objs).forEach(obj -> {
+						if (obj instanceof Sortie)
+							sortiesParDistance.put((Sortie) obj, calculateDistance(x, y, ((Sortie) obj).x, ((Sortie) obj).y));
+					});
 				}
-			}
-		}
-		return new Pair<>(null, null);
+
+		if (sortiesParDistance.isEmpty())
+			return null;
+
+		return sortiesParDistance.entrySet().stream().min(Comparator.comparingInt(Map.Entry::getValue)).get().getKey();
 	}
 
 	public List<Pair<Integer, Integer>> getNonTraversables() {

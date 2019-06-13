@@ -2,10 +2,11 @@ package modele;
 
 public class Constantes {
 
-    public final static int NOMBRE_HUMAINS = 50;
+    public final static int NOMBRE_HUMAINS = 10;
     public final static int NOMBRE_FOYERS = 1;
     public final static int NOMBRE_MURS = 1;
     public static final int NOMBRE_MEUBLES = 100;
+    public static final int NOMBRE_SORTIES = 3;
 
     public final static int VIE_MAX = 5;
     public final static int DOULEUR_BRULURE = 2; // Nombre de points de vie perdus à chaque tours lorsque l'on brule
