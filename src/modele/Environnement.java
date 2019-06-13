@@ -16,6 +16,8 @@ public class Environnement extends SimState {
 
 	private EnvironnementContainer jadeEnvironnementContainer;
 
+	private Statistiques statistiques;
+
 	public Environnement(long seed) {
 		super(seed);
 	}
@@ -24,6 +26,8 @@ public class Environnement extends SimState {
 	public void start() {
 		System.out.println("Initialisation de Jade");
 		jadeEnvironnementContainer = new EnvironnementContainer("modele/jade/environnement.properties");
+
+		statistiques = new Statistiques();
 
 		System.out.println("Simulation intialisee");
 		grille.clear();
@@ -211,17 +215,20 @@ public class Environnement extends SimState {
 		grille.remove(humain);
 		grille.setObjectLocation(new Corps(humain.getX(), humain.getY()), humain.getX(), humain.getY());
 		humain.getStoppable().stop();
-		System.out.println("Humain a été tué");
+
+		statistiques.tuer();
 	}
 
 	public void sortir(Humain humain) {
 		grille.remove(humain);
 		humain.getStoppable().stop();
-		System.out.println("Humain est sorti");
+
+		statistiques.sortir();
 	}
 
 	@Override
 	public void finish() {
+		System.out.println(statistiques.getResume());
 		jadeEnvironnementContainer.kill();
 	}
 }
