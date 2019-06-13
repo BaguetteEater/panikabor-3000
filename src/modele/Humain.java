@@ -8,11 +8,11 @@ import modele.pathfinding.Node;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.engine.Stoppable;
+import sim.util.Bag;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Humain extends Superposable implements Steppable, HumanAgentI {
 
@@ -21,9 +21,6 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
     private List<Statut> statuts;
     private Stoppable stoppable;
     private HumainAgent agent;
-
-    List<Superposable> feuxAProximite;
-    List<Superposable> humainsAProximite;
 
     public Humain(int x, int y, HumainAgent agent) {
         super(x, y);
@@ -62,10 +59,10 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         percevoir(environnement);
 
         if (est(Statut.EN_ALERTE)) {
-            alerterHumains();
+            alerterHumains(environnement);
             essayerDeSortir(environnement);
         } else {
-            sAlerter();
+            sAlerter(environnement);
         }
 
         if (estSorti(environnement))
@@ -75,18 +72,33 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
             environnement.tuer(this);
     }
 
-    private void sAlerter() {
-        if (feuxAProximite.stream().anyMatch(superposable -> superposable instanceof Feu)) {
-            ajouterStatut(Statut.EN_ALERTE);
-            System.out.println(agent.getName() + " -> " + "EN ALERTE (à cause du feu)");
+    private void sAlerter(Environnement environnement) {
+        for (int i = 0; i < gui.Constantes.TAILLE_GRILLE; i++) {
+            for (int j = 0; j < gui.Constantes.TAILLE_GRILLE; j++) {
+                Bag bag = environnement.grille.getObjectsAtLocation(i, j);
+
+                if (visionMasque[i][j] && bag != null && Arrays.stream(bag.objs).anyMatch(s -> s instanceof Feu)) {
+                    ajouterStatut(Statut.EN_ALERTE);
+                    System.out.println(agent.getName() + " -> " + "EN ALERTE (à cause du feu)");
+                    return;
+                }
+            }
         }
     }
 
-    private void alerterHumains() {
-        humainsAProximite.forEach(superposable -> {
-            if (superposable instanceof Humain && !((Humain) superposable).est(Statut.EN_ALERTE))
-                alerter(((Humain) superposable).getAgent().getName());
-        });
+    private void alerterHumains(Environnement environnement) {
+        for (int i = 0; i < gui.Constantes.TAILLE_GRILLE; i++) {
+            for (int j = 0; j < gui.Constantes.TAILLE_GRILLE; j++) {
+                Bag bag = environnement.grille.getObjectsAtLocation(i, j);
+
+                if (visionMasque[i][j] && bag != null) {
+                    Arrays.stream(bag.objs).forEach(s -> {
+                        if (s instanceof Humain && !((Humain) s).est(Statut.EN_ALERTE))
+                            alerter(((Humain) s).getAgent().getName());
+                    });
+                }
+            }
+        }
     }
 
     @Override
@@ -178,9 +190,6 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         List<Superposable> objSorted = e.getSortedObjectInList(this);
         List<Superposable> objVisibles = new ArrayList<>();
         boolean isObjetEntreAB = false;
-
-        feuxAProximite = objSorted.subList(0, 25).stream().filter(superposable -> superposable instanceof Feu).collect(Collectors.toCollection(ArrayList::new));
-        humainsAProximite = objSorted.subList(0, 200).stream().filter(superposable -> superposable instanceof Humain).collect(Collectors.toCollection(ArrayList::new));
 
         //Le premier est toujours visible vu que c'est l'objet le plus proche de l'humain et on le retire pour eviter de l'ajouter deux fois
         objVisibles.add(objSorted.get(0));
