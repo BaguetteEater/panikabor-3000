@@ -4,7 +4,6 @@ public class Constantes {
 
     public final static int NOMBRE_HUMAINS = 100;
     public final static int NOMBRE_FOYERS = 1;
-    public final static int NOMBRE_MURS = 1;
     public static final int NOMBRE_MEUBLES = 100;
 
     public final static int VIE_MAX = 5;
@@ -14,6 +13,8 @@ public class Constantes {
     public final static int PROBABILITE_ETEINDRE = 10;
     public final static int DUREE_DE_VIE_FEU = 15;
     public final static int PROBABILITE_PROPAGATION = 3;
+
+    public final static int TAILLE_HUMAIN = 1;
 
     /**
      * Nombre de places sur une cellule. Cf. Superposable

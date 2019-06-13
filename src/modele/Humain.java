@@ -95,23 +95,12 @@ public class Humain extends Superposable implements Steppable {
                 environnement.grille.getHeight(),
                 environnement.grille.getWidth(),
                 this,
-                environnement.getSortie().getKey(),
-                environnement.getSortie().getValue());
+                environnement.getSortie().get(0).x,
+                environnement.getSortie().get(0).y);
 
-        List<Pair<Integer, Integer>> nonTraversables = environnement.getNonTraversables();
         List<Node> path;
-        int[][] mursArray = new int[nonTraversables.size()][2];
 
-        for(int i = 0; i < mursArray.length; i++){
-            for(int j = 0; j < mursArray[0].length; j++){
-                if(j == 0)
-                    mursArray[i][j] = nonTraversables.get(i).getKey();
-                else
-                    mursArray[i][j] = nonTraversables.get(i).getValue();
-            }
-        }
-
-        cerveau.setBlocks(mursArray);
+        cerveau.setBlocks(environnement.getNonTraversables());
         path = cerveau.findPath();
         //Le path retourne en premiere position la position actuelle de l'humain, on veut la case d'après d'ou le get(1)
         try {
@@ -128,7 +117,11 @@ public class Humain extends Superposable implements Steppable {
      * @return Vrai si l'homme est sur la case de la sortie, false sinon
      */
     public boolean estSorti(Environnement environnement){
-        return environnement.getSortie().getKey() == this.x && environnement.getSortie().getValue() == this.getY();
+        boolean estSorti = false;
+        for(Sortie s : environnement.getSortie())
+            estSorti = !estSorti && s.getX() == this.x && s.getY() == this.getY();
+
+        return estSorti;
     }
 
     /**

@@ -6,14 +6,15 @@ import sim.field.grid.SparseGrid2D;
 import sim.util.Int2D;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Environnement extends SimState {
 
 	public int coordonneeSortieX, coordonneeSortieY;
 	public SparseGrid2D grille = new SparseGrid2D(gui.Constantes.TAILLE_GRILLE, gui.Constantes.TAILLE_GRILLE);
-	private SuperposableVideFactory factory = new SuperposableVideFactory();
+
+	private SuperposableFactory factory = new SuperposableFactory();
+	private List<Sortie> sorties = new ArrayList<>();
 
 	public Environnement(long seed) {
 		super(seed);
@@ -84,6 +85,7 @@ public class Environnement extends SimState {
 		}
 		grille.removeObjectsAtLocation(coordonneeSortieX, coordonneeSortieY);
 		Sortie sortie = new Sortie(1, coordonneeSortieX, coordonneeSortieY);
+		sorties.add(sortie);
 		grille.setObjectLocation(sortie, coordonneeSortieX, coordonneeSortieY);
 	}
 
@@ -111,33 +113,24 @@ public class Environnement extends SimState {
 		grille.remove(feu);
 	}
 
-	public Pair<Integer, Integer> getSortie() {
+	public List<Sortie> getSortie() {
+		return sorties;
+	}
+
+	public List<Superposable> getNonTraversables() {
+
+		List<Superposable> nonTraversables = new ArrayList<>();
 
 		for (int i = 0; i < grille.getHeight(); i++) {
 			for (int j = 0; j < grille.getWidth(); j++) {
 				if (grille.getObjectsAtLocation(i, j) != null) {
-					for (Object o : grille.getObjectsAtLocation(i, j).objs) {
-						if (o instanceof Sortie)
-							return new Pair<>(i, j);
+					if (Superposable.isCellulePleine(this, i, j)) {
+						nonTraversables.add(factory.getPleinSuperposable(i, j));
 					}
 				}
 			}
 		}
-		return new Pair<>(null, null);
-	}
 
-	public List<Pair<Integer, Integer>> getNonTraversables() {
-
-		List<Pair<Integer, Integer>> nonTraversables = new ArrayList<>();
-
-		for (int i = 0; i < grille.getHeight(); i++) {
-			for (int j = 0; j < grille.getWidth(); j++) {
-				if (grille.getObjectsAtLocation(i, j) != null) {
-					if (Superposable.isCellulePleine(this, i, j))
-						nonTraversables.add(new Pair<>(i, j));
-				}
-			}
-		}
 		return nonTraversables;
 	}
 
@@ -148,16 +141,14 @@ public class Environnement extends SimState {
 
 		for(int i = 0; i < grille.getHeight(); i++){
 			for(int j = 0; j < grille.getWidth(); j++){
-
 				if(grille.getObjectsAtLocation(i, j) != null) {
 
 					sizeBag = grille.getObjectsAtLocation(i, j).numObjs;
 					for (int idx = 0; idx < sizeBag; idx++)
 						res.add((Superposable) grille.getObjectsAtLocation(i, j).objs[idx]);
 
-				} else {
+				} else
 					res.add(this.factory.getVideSuperposable(i, j));
-				}
 			}
 		}
 		return res;

@@ -1,6 +1,7 @@
 package modele.pathfinding;
 
 import modele.Humain;
+import modele.Superposable;
 
 import java.util.*;
 
@@ -49,10 +50,10 @@ public class AStar {
         }
     }
 
-    public void setBlocks(int[][] blocksArray) {
-        for (int i = 0; i < blocksArray.length; i++) {
-            int row = blocksArray[i][0];
-            int col = blocksArray[i][1];
+    public void setBlocks(List<Superposable> blocksArray) {
+        for (Superposable s : blocksArray) {
+            int row = s.getX();
+            int col = s.getY();
             setBlock(row, col);
         }
     }
