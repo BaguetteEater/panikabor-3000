@@ -137,7 +137,7 @@ public class Environnement extends SimState {
 		return new Pair<>(null, null);
 	}
 
-	public List<Pair<Integer, Integer>> getNonTraversables() {
+	public List<Pair<Integer, Integer>> getNonTraversables(boolean isFeuTraversable) {
 
 		List<Pair<Integer, Integer>> nonTraversables = new ArrayList<>();
 
@@ -146,6 +146,8 @@ public class Environnement extends SimState {
 				if (grille.getObjectsAtLocation(i, j) != null) {
 					if (Superposable.isCellulePleine(this, i, j))
 						nonTraversables.add(new Pair<>(i, j));
+					else if(!isFeuTraversable && estEnFeu(i,j))
+						nonTraversables.add(new Pair<>(i,j));
 				}
 			}
 		}
@@ -153,20 +155,20 @@ public class Environnement extends SimState {
 	}
 	
 	// Liste des coordonnées des flammes
-	public List<Pair<Integer, Integer>> getFeuLocation() {
-		
-		List<Pair<Integer, Integer>> feuLocation = new ArrayList<>();
-		
-		for (int i = 0; i < grille.getHeight(); i++) {
-			for (int j = 0; j < grille.getWidth(); j++) {
-				if (grille.getObjectsAtLocation(i, j) != null) {
-					if (estEnFeu(i,j))
-						feuLocation.add(new Pair<>(i, j));
-				}
-			}
-		}
-		return feuLocation;
-	}
+//	public List<Pair<Integer, Integer>> getFeuLocation() {
+//		
+//		List<Pair<Integer, Integer>> feuLocation = new ArrayList<>();
+//		
+//		for (int i = 0; i < grille.getHeight(); i++) {
+//			for (int j = 0; j < grille.getWidth(); j++) {
+//				if (grille.getObjectsAtLocation(i, j) != null) {
+//					if (estEnFeu(i,j))
+//						feuLocation.add(new Pair<>(i, j));
+//				}
+//			}
+//		}
+//		return feuLocation;
+//	}
 	
 	// Check si une case est en feu
 	public boolean estEnFeu(int x, int y) {

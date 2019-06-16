@@ -49,28 +49,30 @@ public class Humain extends Superposable implements Steppable {
 
         if (est(Statut.EN_FEU))
             bruler();
-        else
-            potentiellementPrendreFeu(environnement);
+            
 
         percevoir(environnement);
         
         
         if (est(Statut.EN_ALERTE) && !this.est(Statut.PAR_TERRE)) {
         	
-        	if(this.comportement.eteindre && this.comportement.relever) {
+        	if(!this.comportement.eteindre && !this.comportement.relever) {
         		essayerDeSortir(environnement);
+        		potentiellementPrendreFeu(environnement);
         	}
         	else {
         		if(this.comportement.eteindre) {
             		boolean aEteint = eteindre(environnement);
             		if(!aEteint) {
             			essayerDeSortir(environnement);
+            			potentiellementPrendreFeu(environnement);
             		}
             	} 
             	if(this.comportement.relever) {
                 	boolean aReleve = releve(environnement);
                 	if(!aReleve) {
                 		essayerDeSortir(environnement);
+                		potentiellementPrendreFeu(environnement);
                 	}
                 } 
         	}   	
@@ -171,35 +173,20 @@ public class Humain extends Superposable implements Steppable {
                 environnement.getSortie().getKey(),
                 environnement.getSortie().getValue());
 
-        List<Pair<Integer, Integer>> nonTraversables = environnement.getNonTraversables();
+        List<Pair<Integer, Integer>> nonTraversables = environnement.getNonTraversables(this.comportement.marcherSurLeFeu);
         List<Node> path;
-        int[][] mursArray = new int[nonTraversables.size()][2];
+        int[][] bloquerArray = new int[nonTraversables.size()][2];
 
-        for(int i = 0; i < mursArray.length; i++){
-            for(int j = 0; j < mursArray[0].length; j++){
+        for(int i = 0; i < bloquerArray.length; i++){
+            for(int j = 0; j < bloquerArray[0].length; j++){
                 if(j == 0)
-                    mursArray[i][j] = nonTraversables.get(i).getKey();
+                	bloquerArray[i][j] = nonTraversables.get(i).getKey();
                 else
-                    mursArray[i][j] = nonTraversables.get(i).getValue();
+                	bloquerArray[i][j] = nonTraversables.get(i).getValue();
             }
-        }
-        
-        if(!this.comportement.marcherSurLeFeu) {
-        	List<Pair<Integer, Integer>> feuLocation = environnement.getFeuLocation();
-        	int[][] feuArray = new int[feuLocation.size()][2];
-        	
-        	for(int i = 0; i < feuArray.length; i++){
-                for(int j = 0; j < feuArray[0].length; j++){
-                    if(j == 0)
-                    	feuArray[i][j] = feuLocation.get(i).getKey();
-                    else
-                    	feuArray[i][j] = feuLocation.get(i).getValue();
-                }
-            }
-        	cerveau.setBlocks(feuArray);
         }
 
-        cerveau.setBlocks(mursArray);
+        cerveau.setBlocks(bloquerArray);
         path = cerveau.findPath();
         //Le path retourne en premiere position la position actuelle de l'humain, on veut la case d'après d'ou le get(1)
         try {
