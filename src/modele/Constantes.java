@@ -28,8 +28,12 @@ public class Constantes {
     public final static Comportement HERO = new Comportement(true, false, true, true, false, true);
     public final static Comportement EGOISTE = new Comportement(true, true, false, false, false, false);
     public final static Comportement PEUREUX = new Comportement(false, false, false, false, true, true);
-    public final static int NOMBRE_HUMAINS_HERO = 33;
-    public final static int NOMBRE_HUMAINS_EGOISTE = 50;
-    public final static int NOMBRE_HUMAINS_PEUREUX = 33;
+    
+    // Nombre d'humains
+    public final static int NOMBRE_HUMAINS_HERO = 30;
+    public final static int NOMBRE_HUMAINS_EGOISTE = 10;
+    public final static int NOMBRE_HUMAINS_PEUREUX = 30;
+    
+    public final static int NOMBRE_HUMAINS = NOMBRE_HUMAINS_HERO + NOMBRE_HUMAINS_EGOISTE + NOMBRE_HUMAINS_PEUREUX;
 }
 
