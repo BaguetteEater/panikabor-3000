@@ -42,24 +42,24 @@ public class Environnement extends SimState {
 	private void ajouterAgentsHumain() {
 		// TODO : modifier les valeurs de x et y en fonction du placement initial des
 		// humains
-//		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_HERO; i++) {
-//			Int2D location = recupererEmplacementVide();
-//			Humain humain = new Humain(this, location.x, location.y, Constantes.HERO);
-//			grille.setObjectLocation(humain, location.x, location.y);
-//			humain.setStoppable(schedule.scheduleRepeating(humain));
-//		}
+		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_HERO; i++) {
+			Int2D location = recupererEmplacementVide();
+			Humain humain = new Humain(this, location.x, location.y, Constantes.HERO);
+			grille.setObjectLocation(humain, location.x, location.y);
+			humain.setStoppable(schedule.scheduleRepeating(humain));
+		}
 		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_EGOISTE; i++) {
 			Int2D location = recupererEmplacementVide();
 			Humain humain = new Humain(this, location.x, location.y, Constantes.EGOISTE);
 			grille.setObjectLocation(humain, location.x, location.y);
 			humain.setStoppable(schedule.scheduleRepeating(humain));
 		}
-//		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_PEUREUX; i++) {
-//			Int2D location = recupererEmplacementVide();
-//			Humain humain = new Humain(this, location.x, location.y, Constantes.PEUREUX);
-//			grille.setObjectLocation(humain, location.x, location.y);
-//			humain.setStoppable(schedule.scheduleRepeating(humain));
-//		}
+		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_PEUREUX; i++) {
+			Int2D location = recupererEmplacementVide();
+			Humain humain = new Humain(this, location.x, location.y, Constantes.PEUREUX);
+			grille.setObjectLocation(humain, location.x, location.y);
+			humain.setStoppable(schedule.scheduleRepeating(humain));
+		}
 	}
 
 	private void ajouterAgentsFeu() {

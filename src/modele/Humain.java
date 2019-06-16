@@ -56,14 +56,24 @@ public class Humain extends Superposable implements Steppable {
         
         
         if (est(Statut.EN_ALERTE) && !this.est(Statut.PAR_TERRE)) {
-        	if(this.comportement.relever) {
-            	boolean aReleve = releve(environnement);
-            	if(!aReleve) {
-            		essayerDeSortir(environnement);
-            	}
-            } else {
-            	essayerDeSortir(environnement);
-            }
+        	
+        	if(this.comportement.eteindre && this.comportement.relever) {
+        		essayerDeSortir(environnement);
+        	}
+        	else {
+        		if(this.comportement.eteindre) {
+            		boolean aEteint = eteindre(environnement);
+            		if(!aEteint) {
+            			essayerDeSortir(environnement);
+            		}
+            	} 
+            	if(this.comportement.relever) {
+                	boolean aReleve = releve(environnement);
+                	if(!aReleve) {
+                		essayerDeSortir(environnement);
+                	}
+                } 
+        	}   	
         }
             
         
@@ -89,6 +99,24 @@ public class Humain extends Superposable implements Steppable {
     			((Humain)object).ajouterStatut(Statut.PAR_TERRE);
     		}
     	}
+    }
+    
+    private boolean eteindre(Environnement environnement) {
+    	boolean aEteint = false;
+    	if(environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
+    		return aEteint = false;
+    	}
+    	for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+    		if(object instanceof Humain && object != this && ((Humain)object).est(Statut.EN_FEU)) {
+    			((Humain)object).retirerStatut(Statut.EN_FEU);
+    			int chanceDeBruler = (int) (Math.random()*4);
+    			if(chanceDeBruler == 0 && !this.est(Statut.EN_FEU)) {
+    				this.ajouterStatut(Statut.EN_FEU);
+    			}
+    			aEteint = true;
+    		}
+    	}
+    	return aEteint;
     }
     
     private boolean releve(Environnement environnement) {
