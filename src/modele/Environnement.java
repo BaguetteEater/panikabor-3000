@@ -113,7 +113,6 @@ public class Environnement extends SimState {
 		Feu newFeu = new Feu(x, y);
 		grille.setObjectLocation(newFeu, x, y);
 		newFeu.setStoppable(schedule.scheduleRepeating(newFeu));
-	
 	}
 
 	public void supprimerFeu(Feu feu) {

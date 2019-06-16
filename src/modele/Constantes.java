@@ -25,9 +25,9 @@ public class Constantes {
     
     // Constantes pour les comportements
     
-    public final static Comportement HERO = new Comportement(true, false, true, true, false, true);
-    public final static Comportement EGOISTE = new Comportement(true, true, false, false, false, false);
-    public final static Comportement PEUREUX = new Comportement(false, false, false, false, true, true);
+    public final static Comportement HERO = new Comportement(true, false, true, true, true);
+    public final static Comportement EGOISTE = new Comportement(true, true, false, false, false);
+    public final static Comportement PEUREUX = new Comportement(false, false, false, false, true);
     
     // Nombre d'humains
     public final static int NOMBRE_HUMAINS_HERO = 30;

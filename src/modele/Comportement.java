@@ -13,14 +13,12 @@ public class Comportement {
 						 boolean pousserPourPasser,
 						 boolean relever,
 						 boolean eteindre,
-						 boolean stresse,
 						 boolean alerteur) {
 		
 		this.marcherSurLeFeu = marcherSurLeFeu;
 		this.pousserPourPasser = pousserPourPasser;
 		this.relever = relever;
 		this.eteindre = eteindre;
-		this.stresse = stresse;
 		this.alerteur = alerteur;
 	}
 	

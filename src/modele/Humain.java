@@ -57,22 +57,22 @@ public class Humain extends Superposable implements Steppable {
         if (est(Statut.EN_ALERTE) && !this.est(Statut.PAR_TERRE)) {
         	
         	if(!this.comportement.eteindre && !this.comportement.relever) {
-        		essayerDeSortir(environnement);
         		potentiellementPrendreFeu(environnement);
+        		essayerDeSortir(environnement);
         	}
         	else {
         		if(this.comportement.eteindre) {
             		boolean aEteint = eteindre(environnement);
             		if(!aEteint) {
-            			essayerDeSortir(environnement);
             			potentiellementPrendreFeu(environnement);
+            			essayerDeSortir(environnement);
             		}
             	} 
             	if(this.comportement.relever) {
                 	boolean aReleve = releve(environnement);
                 	if(!aReleve) {
-                		essayerDeSortir(environnement);
                 		potentiellementPrendreFeu(environnement);
+                		essayerDeSortir(environnement);
                 	}
                 } 
         	}   	
@@ -89,7 +89,7 @@ public class Humain extends Superposable implements Steppable {
         if (pointsDeVie <= 0)
             environnement.tuer(this);
 
-        percevoir(environnement);
+        //percevoir(environnement);
     }
     
     private void pousser (Environnement environnement) {
