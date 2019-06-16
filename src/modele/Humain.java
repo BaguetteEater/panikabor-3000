@@ -41,15 +41,18 @@ public class Humain extends Superposable implements Steppable {
 
         if (pointsDeVie <= 0 || estSorti(environnement))
             return;
-
+        
         if (est(Statut.PAR_TERRE)) {
             seFairePietiner(environnement);
             essayerDeSeRelever(environnement);
         }
 
-        if (est(Statut.EN_FEU))
-            bruler();
-            
+        if (est(Statut.EN_FEU)) {
+        	bruler();      	
+        }
+        else {
+            potentiellementPrendreFeu(environnement);
+        }
 
         percevoir(environnement);
         
@@ -57,21 +60,18 @@ public class Humain extends Superposable implements Steppable {
         if (est(Statut.EN_ALERTE) && !this.est(Statut.PAR_TERRE)) {
         	
         	if(!this.comportement.eteindre && !this.comportement.relever) {
-        		potentiellementPrendreFeu(environnement);
         		essayerDeSortir(environnement);
         	}
         	else {
         		if(this.comportement.eteindre) {
             		boolean aEteint = eteindre(environnement);
             		if(!aEteint) {
-            			potentiellementPrendreFeu(environnement);
             			essayerDeSortir(environnement);
             		}
             	} 
             	if(this.comportement.relever) {
                 	boolean aReleve = releve(environnement);
                 	if(!aReleve) {
-                		potentiellementPrendreFeu(environnement);
                 		essayerDeSortir(environnement);
                 	}
                 } 
@@ -276,13 +276,20 @@ public class Humain extends Superposable implements Steppable {
     	}
         
     }
-
+    
     private void potentiellementPrendreFeu(Environnement environnement) {
-        long nombreDeFeux = Arrays.stream(environnement.grille.getObjectsAtLocationOfObject(this).objs).filter(obj -> obj instanceof Feu).count();
-        if (nombreDeFeux >= 1) {
-            ajouterStatut(Statut.EN_FEU);
-        }
+        for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+        	if (object instanceof Feu) {
+        		this.ajouterStatut(Statut.EN_FEU);
+        		return;
+        	}
+        	else if(object instanceof Humain && object != this && ((Humain)object).est(Statut.EN_FEU)) {
+    			this.ajouterStatut(Statut.EN_FEU);
+    			return;
+    		}
+    	}
     }
+    
 
     private void bruler() {
         pointsDeVie -= Constantes.DOULEUR_BRULURE;
