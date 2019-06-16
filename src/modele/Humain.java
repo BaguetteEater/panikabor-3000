@@ -53,6 +53,10 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
             essayerDeSeRelever(environnement);
         }
 
+        if(this.comportement.pousserPourPasser && !this.est(Statut.PAR_TERRE)) {
+        	pousser(environnement);
+        }
+
         if (est(Statut.EN_FEU)) {
         	bruler();
         }
@@ -85,7 +89,6 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         } else {
             sAlerter(environnement);
         }
-
 
         if(this.comportement.pousserPourPasser && !this.est(Statut.PAR_TERRE)) {
         	pousser(environnement);
@@ -298,8 +301,8 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
     private void essayerDeSeRelever(Environnement environnement) {
         if (est(Statut.EN_FEU))
             return;
-
-        if (Superposable.getTailleCellule(environnement, x, y) == getTaille() || Math.random() < Constantes.PROBABILITE_SE_RELEVER)
+        int probabilite = (int) (Math.random() * Constantes.PROBABILITE_SE_RELEVER);
+        if (probabilite == 0)
             retirerStatut(Statut.PAR_TERRE);
     }
 
