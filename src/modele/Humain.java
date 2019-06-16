@@ -1,27 +1,29 @@
 package modele;
 
 import javafx.util.Pair;
+import modele.jade.HumainAgent;
+import modele.jade.HumanAgentI;
 import modele.pathfinding.AStar;
 import modele.pathfinding.Node;
-import sim.app.woims.Vector2D;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.engine.Stoppable;
-import sim.field.grid.SparseGrid2D;
+import sim.util.Bag;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Humain extends Superposable implements Steppable {
+public class Humain extends Superposable implements Steppable, HumanAgentI {
 
     private boolean[][] visionMasque;
     private int pointsDeVie = Constantes.VIE_MAX;
     private List<Statut> statuts;
     private Stoppable stoppable;
     private Comportement comportement;
+    private HumainAgent agent;
 
-    public Humain(Environnement environnement, int x, int y, Comportement comportement) {
+    public Humain(int x, int y, HumainAgent agent, Comportement comportement) {
         super(x, y);
 
         visionMasque = new boolean[gui.Constantes.TAILLE_GRILLE][gui.Constantes.TAILLE_GRILLE];
@@ -30,68 +32,105 @@ public class Humain extends Superposable implements Steppable {
         this.statuts = new ArrayList<>();
         setTaille(1);
 
-        ajouterStatut(Statut.EN_ALERTE); // todo: remplacer par la propagation des alertes
-        
         this.comportement = comportement;
+        this.agent = agent;
     }
 
     @Override
     public void step(SimState simState) {
         Environnement environnement = (Environnement) simState;
 
-        if (pointsDeVie <= 0 || estSorti(environnement))
+        Sortie sortieLaPlusProche = environnement.getSortieLaPlusProche(x, y);
+
+        if (pointsDeVie <= 0 || sortieLaPlusProche == null || estSorti(environnement, sortieLaPlusProche))
             return;
-        
+
+        if (!est(Statut.EN_ALERTE) && alerteRecue())
+            ajouterStatut(Statut.EN_ALERTE);
+
         if (est(Statut.PAR_TERRE)) {
             seFairePietiner(environnement);
             essayerDeSeRelever(environnement);
         }
 
         if (est(Statut.EN_FEU)) {
-        	bruler();      	
+        	bruler();
         }
         else {
             potentiellementPrendreFeu(environnement);
         }
 
         percevoir(environnement);
-        
-        
+
         if (est(Statut.EN_ALERTE) && !this.est(Statut.PAR_TERRE)) {
-        	
+            alerterHumains(environnement);
+
         	if(!this.comportement.eteindre && !this.comportement.relever) {
-        		essayerDeSortir(environnement);
+        		essayerDeSortir(environnement, sortieLaPlusProche);
         	}
         	else {
         		if(this.comportement.eteindre) {
             		boolean aEteint = eteindre(environnement);
             		if(!aEteint) {
-            			essayerDeSortir(environnement);
+            			essayerDeSortir(environnement, sortieLaPlusProche);
             		}
-            	} 
+            	}
             	if(this.comportement.relever) {
                 	boolean aReleve = releve(environnement);
                 	if(!aReleve) {
-                		essayerDeSortir(environnement);
+                		essayerDeSortir(environnement, sortieLaPlusProche);
                 	}
-                } 
-        	}   	
+                }
+        	}
+        } else {
+            sAlerter(environnement);
         }
-            
-        
+
+
         if(this.comportement.pousserPourPasser && !this.est(Statut.PAR_TERRE)) {
         	pousser(environnement);
         }
 
-        if (estSorti(environnement))
+        if (estSorti(environnement, sortieLaPlusProche))
             environnement.sortir(this);
 
         if (pointsDeVie <= 0)
             environnement.tuer(this);
-
-        //percevoir(environnement);
     }
-    
+
+    private void sAlerter(Environnement environnement) {
+        for (int i = 0; i < gui.Constantes.TAILLE_GRILLE; i++) {
+            for (int j = 0; j < gui.Constantes.TAILLE_GRILLE; j++) {
+                Bag bag = environnement.grille.getObjectsAtLocation(i, j);
+
+                if (visionMasque[i][j] && bag != null && Arrays.stream(bag.objs).anyMatch(s -> s instanceof Feu)) {
+                    ajouterStatut(Statut.EN_ALERTE);
+                    return;
+                }
+            }
+        }
+    }
+
+    private void alerterHumains(Environnement environnement) {
+        for (int i = 0; i < gui.Constantes.TAILLE_GRILLE; i++) {
+            for (int j = 0; j < gui.Constantes.TAILLE_GRILLE; j++) {
+                Bag bag = environnement.grille.getObjectsAtLocation(i, j);
+
+                if (visionMasque[i][j] && bag != null) {
+                    Arrays.stream(bag.objs).forEach(s -> {
+                        if (s instanceof Humain && !((Humain) s).est(Statut.EN_ALERTE))
+                            alerter(((Humain) s).getAgent().getName());
+                    });
+                }
+            }
+        }
+    }
+
+    @Override
+    public void alerter(String humainAgentName) {
+        this.agent.alerter(humainAgentName);
+    }
+
     private void pousser (Environnement environnement) {
     	if (environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
 			return;
@@ -102,7 +141,7 @@ public class Humain extends Superposable implements Steppable {
     		}
     	}
     }
-    
+
     private boolean eteindre(Environnement environnement) {
     	boolean aEteint = false;
     	if(environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
@@ -120,7 +159,7 @@ public class Humain extends Superposable implements Steppable {
     	}
     	return aEteint;
     }
-    
+
     private boolean releve(Environnement environnement) {
     	boolean aReleve = false;
     	if (environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
@@ -134,7 +173,7 @@ public class Humain extends Superposable implements Steppable {
     	}
 		return aReleve;
     }
-    
+
 
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
         return !Superposable.isCellulePleine(environnement, x, y) // vérifie que la cellule visée est accessible (capacité max non atteinte)
@@ -165,13 +204,13 @@ public class Humain extends Superposable implements Steppable {
      * @param environnement L'ensemble de l'environnement dans lequel se deplace l'humain, contenant l'emplacement des murs et de la sortie
      * @return true si il a reussi a se deplacer, false sinon
      */
-    private boolean essayerDeSortir(Environnement environnement) {
+    private boolean essayerDeSortir(Environnement environnement, Sortie sortie) {
         AStar cerveau = new AStar(
                 environnement.grille.getHeight(),
                 environnement.grille.getWidth(),
                 this,
-                environnement.getSortie().getKey(),
-                environnement.getSortie().getValue());
+                sortie.getX(),
+                sortie.getY());
 
         List<Pair<Integer, Integer>> nonTraversables = environnement.getNonTraversables(this.comportement.marcherSurLeFeu);
         List<Node> path;
@@ -202,8 +241,8 @@ public class Humain extends Superposable implements Steppable {
      * @param environnement L'environnement dans lequel se deplace l'humain, contenant la sortie.
      * @return Vrai si l'homme est sur la case de la sortie, false sinon
      */
-    public boolean estSorti(Environnement environnement){
-        return environnement.getSortie().getKey() == this.x && environnement.getSortie().getValue() == this.getY();
+    public boolean estSorti(Environnement environnement, Sortie sortie){
+        return sortie.getX() == this.x && sortie.getY() == this.getY();
     }
 
     /**
@@ -274,9 +313,9 @@ public class Humain extends Superposable implements Steppable {
     			pointsDeVie -= Constantes.DEGATS_PIETINEMENT;
     		}
     	}
-        
+
     }
-    
+
     private void potentiellementPrendreFeu(Environnement environnement) {
         for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
         	if (object instanceof Feu) {
@@ -289,15 +328,10 @@ public class Humain extends Superposable implements Steppable {
     		}
     	}
     }
-    
+
 
     private void bruler() {
         pointsDeVie -= Constantes.DOULEUR_BRULURE;
-    }
-
-    public void sAlerter(Environnement environnement) {
-        // TODO: vérifier dans la perception si un Humain est EN_ALERTE
-        ajouterStatut(Statut.EN_ALERTE);
     }
 
     public int getPointsDeVie() {
@@ -314,13 +348,15 @@ public class Humain extends Superposable implements Steppable {
      */
     private boolean sontCollineraires(int Bx, int By, int Cx, int Cy){
         //TODO : implementer Bresmann
-        Vector2D AC = new Vector2D(Cx-this.x, Cy-this.y);
-        Vector2D AB = new Vector2D(Cx-Bx, Cy-By);
 
-        double determinant = AC.x*AB.y - AB.x*AC.y;
+        int ACx = Cx-this.x;
+        int ACy = Cy-this.y;
+        int ABx = Cx-Bx;
+        int ABy = Cy-By;
+
+        double determinant = ACx*ABy - ABx*ABy;
 
         return determinant >= -2 && determinant <= 2;
-        //return determinant == 0;
     }
 
     /**
@@ -333,9 +369,12 @@ public class Humain extends Superposable implements Steppable {
      */
     private boolean estEntreDeuxPoints(int Bx, int By, int Cx, int Cy){
 
-        Vector2D CA = new Vector2D(this.x-Cx,this.y-Cy);
-        Vector2D CB = new Vector2D(Bx-Cx,By-Cy);
-        double produitScalaire = (CA.x*CB.x) + (CA.y*CB.y);
+        int CAx = this.x-Cx;
+        int CAy = this.y-Cy;
+        int CBx = Bx-Cx;
+        int CBy = By-Cy;
+
+        double produitScalaire = (CAx*CBx) + (CAy*CBy);
 
         return produitScalaire <= 0;
         //return produitScalaire <= 5;
@@ -372,5 +411,18 @@ public class Humain extends Superposable implements Steppable {
 
     public void setStoppable(Stoppable stoppable) {
         this.stoppable = stoppable;
+    }
+
+    @Override
+    public boolean alerteRecue() {
+        return this.agent.alerteRecue();
+    }
+
+    public HumainAgent getAgent() {
+        return agent;
+    }
+
+    public Comportement getComportement() {
+        return comportement;
     }
 }

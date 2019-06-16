@@ -1,17 +1,22 @@
 package modele;
 
 import javafx.util.Pair;
+import modele.jade.HumainAgent;
+import modele.jade.EnvironnementContainer;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
 import sim.util.Int2D;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Environnement extends SimState {
 
-	public int coordonneeSortieX, coordonneeSortieY;
 	public SparseGrid2D grille = new SparseGrid2D(gui.Constantes.TAILLE_GRILLE, gui.Constantes.TAILLE_GRILLE);
+	private SuperposableVideFactory factory = new SuperposableVideFactory();
+
+	private EnvironnementContainer jadeEnvironnementContainer;
+
+	private Statistiques statistiques;
 
 	public Environnement(long seed) {
 		super(seed);
@@ -19,16 +24,20 @@ public class Environnement extends SimState {
 
 	@Override
 	public void start() {
+		System.out.println("Initialisation de Jade");
+		jadeEnvironnementContainer = new EnvironnementContainer("modele/jade/environnement.properties");
+
+		statistiques = new Statistiques();
+
 		System.out.println("Simulation intialisee");
-		super.start();
 		grille.clear();
+		super.start();
+
 		ajouterContour();
 		ajouterAgentsSortie();
 		ajouterAgentsHumain();
 		ajouterAgentsFeu();
 		ajouterAgentsMeuble();
-
-		//this.getSortedObjectInList(new Humain(this, 4, 4, ));
 	}
 
 	private void ajouterAgentsMeuble() {
@@ -40,23 +49,36 @@ public class Environnement extends SimState {
 	}
 
 	private void ajouterAgentsHumain() {
-		// TODO : modifier les valeurs de x et y en fonction du placement initial des
-		// humains
 		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_HERO; i++) {
+			HumainAgent agent = new HumainAgent();
+			String agentName = "HumainAgent#" + UUID.randomUUID();
+			jadeEnvironnementContainer.addAndStartAgent(agentName, agent);
+
 			Int2D location = recupererEmplacementVide();
-			Humain humain = new Humain(this, location.x, location.y, Constantes.HERO);
+			Humain humain = new Humain(location.x, location.y, agent, Constantes.HERO);
+
 			grille.setObjectLocation(humain, location.x, location.y);
 			humain.setStoppable(schedule.scheduleRepeating(humain));
 		}
 		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_EGOISTE; i++) {
+			HumainAgent agent = new HumainAgent();
+			String agentName = "HumainAgent#" + UUID.randomUUID();
+			jadeEnvironnementContainer.addAndStartAgent(agentName, agent);
+
 			Int2D location = recupererEmplacementVide();
-			Humain humain = new Humain(this, location.x, location.y, Constantes.EGOISTE);
+			Humain humain = new Humain(location.x, location.y, agent, Constantes.EGOISTE);
+
 			grille.setObjectLocation(humain, location.x, location.y);
 			humain.setStoppable(schedule.scheduleRepeating(humain));
 		}
 		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_PEUREUX; i++) {
+			HumainAgent agent = new HumainAgent();
+			String agentName = "HumainAgent#" + UUID.randomUUID();
+			jadeEnvironnementContainer.addAndStartAgent(agentName, agent);
+
 			Int2D location = recupererEmplacementVide();
-			Humain humain = new Humain(this, location.x, location.y, Constantes.PEUREUX);
+			Humain humain = new Humain(location.x, location.y, agent, Constantes.PEUREUX);
+
 			grille.setObjectLocation(humain, location.x, location.y);
 			humain.setStoppable(schedule.scheduleRepeating(humain));
 		}
@@ -73,29 +95,31 @@ public class Environnement extends SimState {
 	}
 
 	private void ajouterAgentsSortie() {
-		int quel_cote = (int) (Math.random() * 4);
-		int coordonneeSortieX = 0, coordonneeSortieY = 0;
-		switch (quel_cote) {
-		case 0:
-			coordonneeSortieX = 0;
-			coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
-			break;
-		case 1:
-			coordonneeSortieX = grille.getWidth() - 1;
-			coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
-			break;
-		case 2:
-			coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
-			coordonneeSortieY = 0;
-			break;
-		case 3:
-			coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
-			coordonneeSortieY = grille.getHeight() - 1;
-			break;
+		for (int i = 0; i < Constantes.NOMBRE_SORTIES; i++) {
+			int quel_cote = (int) (Math.random() * 4);
+			int coordonneeSortieX = 0, coordonneeSortieY = 0;
+			switch (quel_cote) {
+				case 0:
+					coordonneeSortieX = 0;
+					coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
+					break;
+				case 1:
+					coordonneeSortieX = grille.getWidth() - 1;
+					coordonneeSortieY = (int) (Math.random() * grille.getHeight() - 1) + 1;
+					break;
+				case 2:
+					coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
+					coordonneeSortieY = 0;
+					break;
+				case 3:
+					coordonneeSortieX = (int) (Math.random() * grille.getWidth() - 1) + 1;
+					coordonneeSortieY = grille.getHeight() - 1;
+					break;
+			}
+			grille.removeObjectsAtLocation(coordonneeSortieX, coordonneeSortieY);
+			Sortie sortie = new Sortie(1, coordonneeSortieX, coordonneeSortieY);
+			grille.setObjectLocation(sortie, coordonneeSortieX, coordonneeSortieY);
 		}
-		grille.removeObjectsAtLocation(coordonneeSortieX, coordonneeSortieY);
-		Sortie sortie = new Sortie(1, coordonneeSortieX, coordonneeSortieY);
-		grille.setObjectLocation(sortie, coordonneeSortieX, coordonneeSortieY);
 	}
 
 	private void ajouterContour() {
@@ -121,19 +145,23 @@ public class Environnement extends SimState {
 		grille.remove(feu);
 	}
 
-	public Pair<Integer, Integer> getSortie() {
+	public Sortie getSortieLaPlusProche(int x, int y) {
 
-		for (int i = 0; i < grille.getHeight(); i++) {
-			for (int j = 0; j < grille.getWidth(); j++) {
+		Map<Sortie, Integer> sortiesParDistance = new HashMap<>(Constantes.NOMBRE_SORTIES);
+
+		for (int i = 0; i < grille.getHeight(); i++)
+			for (int j = 0; j < grille.getWidth(); j++)
 				if (grille.getObjectsAtLocation(i, j) != null) {
-					for (Object o : grille.getObjectsAtLocation(i, j).objs) {
-						if (o instanceof Sortie)
-							return new Pair<>(i, j);
-					}
+					Arrays.stream(grille.getObjectsAtLocation(i, j).objs).forEach(obj -> {
+						if (obj instanceof Sortie)
+							sortiesParDistance.put((Sortie) obj, calculateDistance(x, y, ((Sortie) obj).x, ((Sortie) obj).y));
+					});
 				}
-			}
-		}
-		return new Pair<>(null, null);
+
+		if (sortiesParDistance.isEmpty())
+			return null;
+
+		return sortiesParDistance.entrySet().stream().min(Comparator.comparingInt(Map.Entry::getValue)).get().getKey();
 	}
 
 	public List<Pair<Integer, Integer>> getNonTraversables(boolean isFeuTraversable) {
@@ -152,23 +180,7 @@ public class Environnement extends SimState {
 		}
 		return nonTraversables;
 	}
-	
-	// Liste des coordonnées des flammes
-//	public List<Pair<Integer, Integer>> getFeuLocation() {
-//		
-//		List<Pair<Integer, Integer>> feuLocation = new ArrayList<>();
-//		
-//		for (int i = 0; i < grille.getHeight(); i++) {
-//			for (int j = 0; j < grille.getWidth(); j++) {
-//				if (grille.getObjectsAtLocation(i, j) != null) {
-//					if (estEnFeu(i,j))
-//						feuLocation.add(new Pair<>(i, j));
-//				}
-//			}
-//		}
-//		return feuLocation;
-//	}
-	
+
 	// Check si une case est en feu
 	public boolean estEnFeu(int x, int y) {
 		if (this.grille.getObjectsAtLocation(x, y) == null) {
@@ -182,25 +194,25 @@ public class Environnement extends SimState {
 
 	private List<Superposable> getObjetsDeGrilleEnListe(){
 
-		List<Superposable> res = new ArrayList<>();
+		List<Superposable> res = new ArrayList<>(gui.Constantes.TAILLE_GRILLE*gui.Constantes.TAILLE_GRILLE*3);
 		int sizeBag;
 
 		for(int i = 0; i < grille.getHeight(); i++){
 			for(int j = 0; j < grille.getWidth(); j++){
 
 				if(grille.getObjectsAtLocation(i, j) != null) {
+
 					sizeBag = grille.getObjectsAtLocation(i, j).numObjs;
 					for (int idx = 0; idx < sizeBag; idx++)
 						res.add((Superposable) grille.getObjectsAtLocation(i, j).objs[idx]);
 
 				} else {
-					res.add(new Superposable(i, j) {});
+					res.add(this.factory.getVideSuperposable(i, j));
 				}
 			}
 		}
 		return res;
 	}
-	
 
 	public List<Superposable> getSortedObjectInList(Humain h){
 
@@ -234,12 +246,20 @@ public class Environnement extends SimState {
 		grille.remove(humain);
 		grille.setObjectLocation(new Corps(humain.getX(), humain.getY()), humain.getX(), humain.getY());
 		humain.getStoppable().stop();
-		System.out.println("Humain a été tué");
+
+		statistiques.tuer();
 	}
 
 	public void sortir(Humain humain) {
 		grille.remove(humain);
 		humain.getStoppable().stop();
-		System.out.println("Humain est sorti");
+
+		statistiques.sortir();
+	}
+
+	@Override
+	public void finish() {
+		System.out.println(statistiques.getResume());
+		jadeEnvironnementContainer.kill();
 	}
 }
