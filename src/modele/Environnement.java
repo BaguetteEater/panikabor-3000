@@ -38,7 +38,6 @@ public class Environnement extends SimState {
 		ajouterAgentsHumain();
 		ajouterAgentsFeu();
 		ajouterAgentsMeuble();
-
 	}
 
 	private void ajouterAgentsMeuble() {
@@ -50,15 +49,35 @@ public class Environnement extends SimState {
 	}
 
 	private void ajouterAgentsHumain() {
-		for (int i = 0; i < Constantes.NOMBRE_HUMAINS; i++) {
-			// Création de l'HumainAgent
+		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_HERO; i++) {
 			HumainAgent agent = new HumainAgent();
 			String agentName = "HumainAgent#" + UUID.randomUUID();
 			jadeEnvironnementContainer.addAndStartAgent(agentName, agent);
 
-			// Création de l'Humain et placement sur la grille
 			Int2D location = recupererEmplacementVide();
-			Humain humain = new Humain(location.x, location.y, agent);
+			Humain humain = new Humain(location.x, location.y, agent, Constantes.HERO);
+
+			grille.setObjectLocation(humain, location.x, location.y);
+			humain.setStoppable(schedule.scheduleRepeating(humain));
+		}
+		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_EGOISTE; i++) {
+			HumainAgent agent = new HumainAgent();
+			String agentName = "HumainAgent#" + UUID.randomUUID();
+			jadeEnvironnementContainer.addAndStartAgent(agentName, agent);
+
+			Int2D location = recupererEmplacementVide();
+			Humain humain = new Humain(location.x, location.y, agent, Constantes.EGOISTE);
+
+			grille.setObjectLocation(humain, location.x, location.y);
+			humain.setStoppable(schedule.scheduleRepeating(humain));
+		}
+		for (int i = 0; i < Constantes.NOMBRE_HUMAINS_PEUREUX; i++) {
+			HumainAgent agent = new HumainAgent();
+			String agentName = "HumainAgent#" + UUID.randomUUID();
+			jadeEnvironnementContainer.addAndStartAgent(agentName, agent);
+
+			Int2D location = recupererEmplacementVide();
+			Humain humain = new Humain(location.x, location.y, agent, Constantes.PEUREUX);
 
 			grille.setObjectLocation(humain, location.x, location.y);
 			humain.setStoppable(schedule.scheduleRepeating(humain));
@@ -118,7 +137,6 @@ public class Environnement extends SimState {
 		Feu newFeu = new Feu(x, y);
 		grille.setObjectLocation(newFeu, x, y);
 		newFeu.setStoppable(schedule.scheduleRepeating(newFeu));
-	
 	}
 
 	public void supprimerFeu(Feu feu) {
@@ -146,7 +164,7 @@ public class Environnement extends SimState {
 		return sortiesParDistance.entrySet().stream().min(Comparator.comparingInt(Map.Entry::getValue)).get().getKey();
 	}
 
-	public List<Pair<Integer, Integer>> getNonTraversables() {
+	public List<Pair<Integer, Integer>> getNonTraversables(boolean isFeuTraversable) {
 
 		List<Pair<Integer, Integer>> nonTraversables = new ArrayList<>();
 
@@ -155,10 +173,23 @@ public class Environnement extends SimState {
 				if (grille.getObjectsAtLocation(i, j) != null) {
 					if (Superposable.isCellulePleine(this, i, j))
 						nonTraversables.add(new Pair<>(i, j));
+					else if(!isFeuTraversable && estEnFeu(i,j))
+						nonTraversables.add(new Pair<>(i,j));
 				}
 			}
 		}
 		return nonTraversables;
+	}
+
+	// Check si une case est en feu
+	public boolean estEnFeu(int x, int y) {
+		if (this.grille.getObjectsAtLocation(x, y) == null) {
+			return false;
+		}
+		for(Object object : this.grille.getObjectsAtLocation(x, y).objs) {
+    		if(object instanceof Feu) return true;
+    	}
+    	return false;
 	}
 
 	private List<Superposable> getObjetsDeGrilleEnListe(){

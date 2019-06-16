@@ -20,9 +20,10 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
     private int pointsDeVie = Constantes.VIE_MAX;
     private List<Statut> statuts;
     private Stoppable stoppable;
+    private Comportement comportement;
     private HumainAgent agent;
 
-    public Humain(int x, int y, HumainAgent agent) {
+    public Humain(int x, int y, HumainAgent agent, Comportement comportement) {
         super(x, y);
 
         visionMasque = new boolean[gui.Constantes.TAILLE_GRILLE][gui.Constantes.TAILLE_GRILLE];
@@ -31,6 +32,7 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         this.statuts = new ArrayList<>();
         setTaille(1);
 
+        this.comportement = comportement;
         this.agent = agent;
     }
 
@@ -51,18 +53,45 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
             essayerDeSeRelever(environnement);
         }
 
-        if (est(Statut.EN_FEU))
-            bruler();
-        else
+        if(this.comportement.pousserPourPasser && !this.est(Statut.PAR_TERRE)) {
+        	pousser(environnement);
+        }
+
+        if (est(Statut.EN_FEU)) {
+        	bruler();
+        }
+        else {
             potentiellementPrendreFeu(environnement);
+        }
 
         percevoir(environnement);
 
-        if (est(Statut.EN_ALERTE)) {
+        if (est(Statut.EN_ALERTE) && !this.est(Statut.PAR_TERRE)) {
             alerterHumains(environnement);
-            essayerDeSortir(environnement, sortieLaPlusProche);
+
+        	if(!this.comportement.eteindre && !this.comportement.relever) {
+        		essayerDeSortir(environnement, sortieLaPlusProche);
+        	}
+        	else {
+        		if(this.comportement.eteindre) {
+            		boolean aEteint = eteindre(environnement);
+            		if(!aEteint) {
+            			essayerDeSortir(environnement, sortieLaPlusProche);
+            		}
+            	}
+            	if(this.comportement.relever) {
+                	boolean aReleve = releve(environnement);
+                	if(!aReleve) {
+                		essayerDeSortir(environnement, sortieLaPlusProche);
+                	}
+                }
+        	}
         } else {
             sAlerter(environnement);
+        }
+
+        if(this.comportement.pousserPourPasser && !this.est(Statut.PAR_TERRE)) {
+        	pousser(environnement);
         }
 
         if (estSorti(environnement, sortieLaPlusProche))
@@ -105,6 +134,50 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         this.agent.alerter(humainAgentName);
     }
 
+    private void pousser (Environnement environnement) {
+    	if (environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
+			return;
+		}
+		for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+    		if(object instanceof Humain && object != this && !((Humain)object).est(Statut.PAR_TERRE)) {
+    			((Humain)object).ajouterStatut(Statut.PAR_TERRE);
+    		}
+    	}
+    }
+
+    private boolean eteindre(Environnement environnement) {
+    	boolean aEteint = false;
+    	if(environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
+    		return aEteint = false;
+    	}
+    	for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+    		if(object instanceof Humain && object != this && ((Humain)object).est(Statut.EN_FEU)) {
+    			((Humain)object).retirerStatut(Statut.EN_FEU);
+    			int chanceDeBruler = (int) (Math.random()*4);
+    			if(chanceDeBruler == 0 && !this.est(Statut.EN_FEU)) {
+    				this.ajouterStatut(Statut.EN_FEU);
+    			}
+    			aEteint = true;
+    		}
+    	}
+    	return aEteint;
+    }
+
+    private boolean releve(Environnement environnement) {
+    	boolean aReleve = false;
+    	if (environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
+			return aReleve;
+		}
+		for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+    		if(object instanceof Humain && object != this && ((Humain)object).est(Statut.PAR_TERRE)) {
+    			((Humain)object).retirerStatut(Statut.PAR_TERRE);
+    			aReleve = true;
+    		}
+    	}
+		return aReleve;
+    }
+
+
     private boolean peutSeDeplacer(Environnement environnement, int x, int y) {
         return !Superposable.isCellulePleine(environnement, x, y) // vérifie que la cellule visée est accessible (capacité max non atteinte)
                 && !est(Statut.PAR_TERRE) // vérifie que l'humain n'est pas par terre
@@ -142,20 +215,20 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
                 sortie.getX(),
                 sortie.getY());
 
-        List<Pair<Integer, Integer>> nonTraversables = environnement.getNonTraversables();
+        List<Pair<Integer, Integer>> nonTraversables = environnement.getNonTraversables(this.comportement.marcherSurLeFeu);
         List<Node> path;
-        int[][] mursArray = new int[nonTraversables.size()][2];
+        int[][] bloquerArray = new int[nonTraversables.size()][2];
 
-        for(int i = 0; i < mursArray.length; i++){
-            for(int j = 0; j < mursArray[0].length; j++){
+        for(int i = 0; i < bloquerArray.length; i++){
+            for(int j = 0; j < bloquerArray[0].length; j++){
                 if(j == 0)
-                    mursArray[i][j] = nonTraversables.get(i).getKey();
+                	bloquerArray[i][j] = nonTraversables.get(i).getKey();
                 else
-                    mursArray[i][j] = nonTraversables.get(i).getValue();
+                	bloquerArray[i][j] = nonTraversables.get(i).getValue();
             }
         }
 
-        cerveau.setBlocks(mursArray);
+        cerveau.setBlocks(bloquerArray);
         path = cerveau.findPath();
         //Le path retourne en premiere position la position actuelle de l'humain, on veut la case d'après d'ou le get(1)
         try {
@@ -228,25 +301,37 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
     private void essayerDeSeRelever(Environnement environnement) {
         if (est(Statut.EN_FEU))
             return;
-
-        if (Superposable.getTailleCellule(environnement, x, y) == getTaille() || Math.random() < Constantes.PROBABILITE_SE_RELEVER)
+        int probabilite = (int) (Math.random() * Constantes.PROBABILITE_SE_RELEVER);
+        if (probabilite == 0)
             retirerStatut(Statut.PAR_TERRE);
     }
 
     private void seFairePietiner(Environnement environnement) {
-        int tailleCellule = Superposable.getTailleCellule(environnement, x, y);
-        pointsDeVie -= (tailleCellule + getTaille());
+        //int tailleCellule = Superposable.getTailleCellule(environnement, x, y);
+    	if (environnement.grille.getObjectsAtLocation(this.x, this.y) == null) {
+			return;
+		}
+		for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+    		if(object instanceof Humain && object != this && !((Humain)object).est(Statut.PAR_TERRE)) {
+    			pointsDeVie -= Constantes.DEGATS_PIETINEMENT;
+    		}
+    	}
+
     }
 
     private void potentiellementPrendreFeu(Environnement environnement) {
-        if (environnement.grille.getObjectsAtLocationOfObject(this) == null)
-            return ;
-
-        long nombreDeFeux = Arrays.stream(environnement.grille.getObjectsAtLocationOfObject(this).objs).filter(obj -> obj instanceof Feu).count();
-        if (nombreDeFeux >= 1) {
-            ajouterStatut(Statut.EN_FEU);
-        }
+        for(Object object : environnement.grille.getObjectsAtLocation(this.x, this.y).objs) {
+        	if (object instanceof Feu) {
+        		this.ajouterStatut(Statut.EN_FEU);
+        		return;
+        	}
+        	else if(object instanceof Humain && object != this && ((Humain)object).est(Statut.EN_FEU)) {
+    			this.ajouterStatut(Statut.EN_FEU);
+    			return;
+    		}
+    	}
     }
+
 
     private void bruler() {
         pointsDeVie -= Constantes.DOULEUR_BRULURE;
@@ -338,5 +423,9 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
 
     public HumainAgent getAgent() {
         return agent;
+    }
+
+    public Comportement getComportement() {
+        return comportement;
     }
 }

@@ -64,19 +64,19 @@ public class SimulationAvecUI extends GUIState {
             public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
                 if (object instanceof Humain) {
 
-                    if (((Humain) object).est(Statut.EN_ALERTE)) {
-                        if (((Humain) object).est(Statut.EN_FEU))
+					if (((Humain) object).est(Statut.PAR_TERRE)) {
+						if (((Humain) object).est(Statut.EN_FEU))
+							image = new ImageIcon("img/par_terre_en_feu.png").getImage();
+						else
+							image = new ImageIcon("img/par_terre.png").getImage();
+
+					} else if (((Humain) object).est(Statut.EN_ALERTE)) {
+						if (((Humain) object).est(Statut.EN_FEU))
 							image = new ImageIcon("img/en_alerte_en_feu.png").getImage();
 						else
 							image = new ImageIcon("img/en_alerte.png").getImage();
 
-                    } else if (((Humain) object).est(Statut.PAR_TERRE)) {
-                        if (((Humain) object).est(Statut.EN_FEU))
-                            image = new ImageIcon("img/par_terre_en_feu.png").getImage();
-                        else
-                            image = new ImageIcon("img/par_terre.png").getImage();
-
-                    } else {
+					}  else {
 						image = new ImageIcon("img/happy.png").getImage();
 					}
                 }
