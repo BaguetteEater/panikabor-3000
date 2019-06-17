@@ -214,7 +214,7 @@ public class Environnement extends SimState {
 		return res;
 	}
 
-	public List<Superposable> getSortedObjectInList(Humain h){
+	public List<Superposable> getSortedObjectInList(Humain h, int porteeVison){
 
 		List<Superposable> toSortList = getObjetsDeGrilleEnListe();
 
@@ -226,7 +226,7 @@ public class Environnement extends SimState {
 		});
 
 		toSortList.remove(0);
-		return toSortList;
+		return toSortList.subList(0, porteeVison);
 	}
 
 	public static int calculateDistance( int x1, int y1, int x2, int y2) {

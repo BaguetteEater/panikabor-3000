@@ -7,6 +7,8 @@ public class Constantes {
     public static final int NOMBRE_MEUBLES = 100;
     public static final int NOMBRE_SORTIES = 3;
 
+    public static final int PORTEE_VISON = 70;
+
     public final static int VIE_MAX = 5;
     public final static int DOULEUR_BRULURE = 2; // Nombre de points de vie perdus à chaque tours lorsque l'on brule
     public final static double PROBABILITE_SE_RELEVER = 4; // Probabilité qu'un humain puisse se relever si il est par terre

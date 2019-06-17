@@ -259,7 +259,7 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
      */
     private void percevoir(Environnement e) {
 
-        List<Superposable> objSorted = e.getSortedObjectInList(this);
+        List<Superposable> objSorted = e.getSortedObjectInList(this, Constantes.PORTEE_VISON);
         List<Superposable> objVisibles = new ArrayList<>();
         boolean isObjetEntreAB = false;
 
