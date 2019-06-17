@@ -1,8 +1,8 @@
 package modele;
 
 import javafx.util.Pair;
-import modele.jade.HumainAgent;
 import modele.jade.EnvironnementContainer;
+import modele.jade.HumainAgent;
 import sim.engine.SimState;
 import sim.field.grid.SparseGrid2D;
 import sim.util.Int2D;
@@ -24,12 +24,12 @@ public class Environnement extends SimState {
 
 	@Override
 	public void start() {
-		System.out.println("Initialisation de Jade");
+		System.out.println("Initialisation de Jade.");
 		jadeEnvironnementContainer = new EnvironnementContainer("modele/jade/environnement.properties");
 
 		statistiques = new Statistiques();
 
-		System.out.println("Simulation intialisee");
+		System.out.println("Simulation initialisée.");
 		grille.clear();
 		super.start();
 
@@ -247,19 +247,20 @@ public class Environnement extends SimState {
 		grille.setObjectLocation(new Corps(humain.getX(), humain.getY()), humain.getX(), humain.getY());
 		humain.getStoppable().stop();
 
-		statistiques.tuer();
+		statistiques.tuer(humain.getComportement());
 	}
 
 	public void sortir(Humain humain) {
 		grille.remove(humain);
 		humain.getStoppable().stop();
 
-		statistiques.sortir();
+		statistiques.sortir(humain.getComportement());
 	}
 
 	@Override
 	public void finish() {
-		System.out.println(statistiques.getResume());
+		System.out.println("Simulation terminée.\nImpression du rapport...");
+		System.out.println(statistiques.getRapportDeFin());
 		jadeEnvironnementContainer.kill();
 	}
 }

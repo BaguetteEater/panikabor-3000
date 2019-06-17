@@ -22,21 +22,16 @@ public class Constantes {
      * Nombre de places sur une cellule. Cf. Superposable
      */
     public final static int CAPACITE_MAX_CELLULE = 3;
-    
- // nombre maximum de pieces supplementaires
-    public final static int SALLES_MAX = 3;
 
     // Constantes pour les comportements
-
-    public final static Comportement HERO = new Comportement(true, false, true, true, true);
-    public final static Comportement EGOISTE = new Comportement(false, true, false, false, false);
-    public final static Comportement PEUREUX = new Comportement(false, false, false, false, true);
+    public final static Comportement HERO = new Comportement("Héros", true, false, true, true, true);
+    public final static Comportement EGOISTE = new Comportement("Égoiste", false, true, false, false, false);
+    public final static Comportement PEUREUX = new Comportement("Peureux", false, false, false, false, true);
 
     // Nombre d'humains
-    public final static int NOMBRE_HUMAINS_HERO = 50;
-    public final static int NOMBRE_HUMAINS_EGOISTE = 50;
-    public final static int NOMBRE_HUMAINS_PEUREUX = 50;
-
+    public final static int NOMBRE_HUMAINS_HERO = 10;
+    public final static int NOMBRE_HUMAINS_EGOISTE = 10;
+    public final static int NOMBRE_HUMAINS_PEUREUX = 10;
     public final static int NOMBRE_HUMAINS = NOMBRE_HUMAINS_HERO + NOMBRE_HUMAINS_EGOISTE + NOMBRE_HUMAINS_PEUREUX;
 }
 
