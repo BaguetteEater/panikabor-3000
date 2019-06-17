@@ -45,6 +45,7 @@ public class SimulationAvecUI extends GUIState {
 		yardPortrayal.setPortrayalForClass(Feu.class, getAgentFeuRepresentation());
 		yardPortrayal.setPortrayalForClass(Mur.class, getAgentMurRepresentation());
 		yardPortrayal.setPortrayalForClass(Sortie.class, getAgentSortieRepresentation());
+		yardPortrayal.setPortrayalForClass(FausseSortie.class, getAgentFausseSortieRepresentation());
 		yardPortrayal.setPortrayalForClass(TerrainBrule.class, getTerrainBruleRepresentation());
 		yardPortrayal.setPortrayalForClass(Corps.class, getAgentCorpsRepresentation());
 		yardPortrayal.setPortrayalForClass(Meuble.class, getAgentMeubleRepresentation());
@@ -110,7 +111,22 @@ public class SimulationAvecUI extends GUIState {
             }
         };
     }
-	
+
+	private ImagePortrayal2D getAgentFausseSortieRepresentation() {
+		return new ImagePortrayal2D(new ImageIcon("img/sortie.png")) {
+			@Override
+			public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
+				if (object instanceof FausseSortie)
+					if (((FausseSortie) object).getX() == 0 || ((FausseSortie) object).getX() == Constantes.TAILLE_GRILLE - 1)
+						image = new ImageIcon("img/sortie-horizontale.png").getImage();
+					else
+						image = new ImageIcon("img/sortie.png").getImage();
+
+				super.draw(object, graphics, info);
+			}
+		};
+	}
+
 	private ImagePortrayal2D getAgentMurRepresentation() {
 		return new ImagePortrayal2D(new ImageIcon("img/wall.png"));
 	}

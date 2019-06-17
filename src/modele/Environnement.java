@@ -43,7 +43,7 @@ public class Environnement extends SimState {
 	private void ajouterAgentsMeuble() {
 		for (int i = 0; i < Constantes.NOMBRE_MEUBLES; i++) {
 			Int2D location = recupererEmplacementVide();
-			Meuble meuble = new Meuble(location.x, location.y, 3);
+			Meuble meuble = new Meuble(location.x, location.y, Constantes.CAPACITE_MAX_CELLULE);
 			grille.setObjectLocation(meuble, location.x, location.y);
 		}
 	}

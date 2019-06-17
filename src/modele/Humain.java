@@ -13,6 +13,7 @@ import sim.util.Bag;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class Humain extends Superposable implements Steppable, HumanAgentI {
 
@@ -42,7 +43,7 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
 
         Sortie sortieLaPlusProche = environnement.getSortieLaPlusProche(x, y);
 
-        if (pointsDeVie <= 0 || sortieLaPlusProche == null || estSorti(environnement, sortieLaPlusProche))
+        if (pointsDeVie <= 0 || (sortieLaPlusProche != null && estSorti(environnement, sortieLaPlusProche)))
             return;
 
         if (!est(Statut.EN_ALERTE) && alerteRecue())
@@ -69,7 +70,9 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         if (est(Statut.EN_ALERTE) && !this.est(Statut.PAR_TERRE)) {
             alerterHumains(environnement);
 
-        	if(!this.comportement.eteindre && !this.comportement.relever) {
+            if (sortieLaPlusProche == null)
+                deplacementAleatoire(environnement);
+            else if(!this.comportement.eteindre && !this.comportement.relever) {
         		essayerDeSortir(environnement, sortieLaPlusProche);
         	}
         	else {
@@ -94,11 +97,25 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
         	pousser(environnement);
         }
 
-        if (estSorti(environnement, sortieLaPlusProche))
+        if (sortieLaPlusProche != null && estSorti(environnement, sortieLaPlusProche))
             environnement.sortir(this);
 
         if (pointsDeVie <= 0)
             environnement.tuer(this);
+    }
+
+    private boolean deplacementAleatoire(Environnement environnement) {
+        switch(new Random().nextInt(4 - 1 + 1) + 1) {
+            case 1:
+                return essayerDeSeDeplacer(environnement, x + 1, y);
+            case 2:
+                return essayerDeSeDeplacer(environnement, x, y + 1);
+            case 3:
+                return essayerDeSeDeplacer(environnement, x - 1, y);
+            case 4:
+                return essayerDeSeDeplacer(environnement, x, y - 1);
+        }
+        return false;
     }
 
     private void sAlerter(Environnement environnement) {
@@ -230,6 +247,12 @@ public class Humain extends Superposable implements Steppable, HumanAgentI {
 
         cerveau.setBlocks(bloquerArray);
         path = cerveau.findPath();
+
+        if (path.size() == 0 && !est(Statut.EN_FEU)) {
+            environnement.grille.remove(sortie);
+            environnement.grille.setObjectLocation(new FausseSortie(sortie.getX(), sortie.getY()), sortie.getX(), sortie.getY());
+        }
+
         //Le path retourne en premiere position la position actuelle de l'humain, on veut la case d'après d'ou le get(1)
         try {
             essayerDeSeDeplacer(environnement, path.get(1).getRow(), path.get(1).getCol());

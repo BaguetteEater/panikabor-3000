@@ -38,7 +38,7 @@ public class Feu extends Superposable implements Steppable {
 			return true;
 		}
     	for(Object object : environnement.grille.getObjectsAtLocation(x, y).objs) {
-    		if(object instanceof Feu || object instanceof Mur || object instanceof TerrainBrule || object instanceof Sortie) return false;
+    		if(object instanceof Feu || object instanceof Mur || object instanceof TerrainBrule || object instanceof Sortie || object instanceof FausseSortie) return false;
     	}
     	return true;
     }
