@@ -113,14 +113,14 @@ public class SimulationAvecUI extends GUIState {
     }
 
 	private ImagePortrayal2D getAgentFausseSortieRepresentation() {
-		return new ImagePortrayal2D(new ImageIcon("img/sortie.png")) {
+		return new ImagePortrayal2D(new ImageIcon("img/fausse-sortie.png")) {
 			@Override
 			public void draw(Object object, Graphics2D graphics, DrawInfo2D info) {
 				if (object instanceof FausseSortie)
 					if (((FausseSortie) object).getX() == 0 || ((FausseSortie) object).getX() == Constantes.TAILLE_GRILLE - 1)
-						image = new ImageIcon("img/sortie-horizontale.png").getImage();
+						image = new ImageIcon("img/fausse-sortie-horizontale.png").getImage();
 					else
-						image = new ImageIcon("img/sortie.png").getImage();
+						image = new ImageIcon("img/fausse-sortie.png").getImage();
 
 				super.draw(object, graphics, info);
 			}
