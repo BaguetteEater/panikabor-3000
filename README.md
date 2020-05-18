@@ -66,7 +66,9 @@ There is three avaible behaviors :
 * Scared
 
 The **HERO** will walk on fire because he can, he won't push others to pass, he will help other agents and warn everyone.
+
 The **SELFISH** won't walk on the fire, will push others, won't help anyone and won't warns others to gain the exit quicker.
+
 The **SCARED** won't walk on fire, will push others, won't help but will warns everyone by its screams of terror.
 
 An agent can lost HP by :
